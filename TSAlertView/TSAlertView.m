@@ -7,6 +7,10 @@
 #import "TSAlertView.h"
 #import <QuartzCore/QuartzCore.h>
 
+#ifndef NS_BLOCKS_AVAILABLE
+#error Requires Blocks!
+#endif
+
 @interface TSAlertOverlayWindow : UIWindow
 {
 }
@@ -78,6 +82,10 @@
 - (CGSize) buttonsAreaSize_Stacked;
 - (CGSize) buttonsAreaSize_SideBySide;
 - (CGSize) recalcSizeAndLayout: (BOOL) layout;
+//
+- (void) onKeyboardWillShow: (NSNotification*) note;
+- (void) onKeyboardWillHide: (NSNotification*) note;
+- (void) onButtonPress: (id) sender;
 @end
 
 @interface TSAlertViewController : UIViewController
@@ -447,7 +455,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 - (void) setCancelButtonIndex:(NSInteger)buttonIndex
 {
 	// avoid a NSRange exception
-	if ( buttonIndex < 0 || buttonIndex >= [self.buttons count] )
+	if ( buttonIndex < 0 || buttonIndex >= (NSInteger) [self.buttons count] )
 		return;
 	
 	cancelButtonIndex = buttonIndex;
@@ -493,7 +501,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 - (NSString *) buttonTitleAtIndex:(NSInteger)buttonIndex
 {
 	// avoid a NSRange exception
-	if ( buttonIndex < 0 || buttonIndex >= [self.buttons count] )
+	if ( buttonIndex < 0 || buttonIndex >= (NSInteger) [self.buttons count] )
 		return nil;
 	
 	UIButton* b = [self.buttons objectAtIndex: buttonIndex];
