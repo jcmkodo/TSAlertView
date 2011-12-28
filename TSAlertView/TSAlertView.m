@@ -6,10 +6,25 @@
 
 #import "TSAlertView.h"
 #import <QuartzCore/QuartzCore.h>
+#import <Availability.h>
 
-#ifndef NS_BLOCKS_AVAILABLE
-#error Requires Blocks!
+//#ifndef NS_BLOCKS_AVAILABLE
+//#error Requires Blocks!
+//#endif
+
+#ifdef NS_BLOCKS_AVAILABLE
+#undef NS_BLOCKS_AVAILABLE
+
+static NSString *const kAlertAnimResize = @"ResizeAlertView";
+static NSString *const kAlertAnimPulse1 = @"PulsePart1";
+static NSString *const kAlertAnimPulse2 = @"PulsePart2";
+
 #endif
+
+#define ALERT_VIEW_RESIZE_ANIMS(centerOn) { \
+[av sizeToFit]; \
+av.center = CGPointMake( CGRectGetMidX( centerOn.bounds ), CGRectGetMidY( centerOn.bounds ) ); \
+av.frame = CGRectIntegral( av.frame ); }
 
 @interface TSAlertOverlayWindow : UIWindow
 {
@@ -86,6 +101,11 @@
 - (void) onKeyboardWillShow: (NSNotification*) note;
 - (void) onKeyboardWillHide: (NSNotification*) note;
 - (void) onButtonPress: (id) sender;
+#ifndef NS_BLOCKS_AVAILABLE
+- (void)animationDidStop:(NSString *)animationID 
+                finished:(NSNumber *)finished 
+                 context:(void *)context;
+#endif
 @end
 
 @interface TSAlertViewController : UIViewController
@@ -98,20 +118,26 @@
 {
 	return YES;
 }
+
 - (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation duration:(NSTimeInterval)duration
 {
 	TSAlertView* av = [self.view.subviews lastObject];
 	if (!av || ![av isKindOfClass:[TSAlertView class]])
 		return;
 	// resize the alertview if it wants to make use of any extra space (or needs to contract)
+#ifdef NS_BLOCKS_AVAILABLE
 	[UIView animateWithDuration:duration 
-					 animations:^{
-						 [av sizeToFit];
-						 av.center = CGPointMake( CGRectGetMidX( self.view.bounds ), CGRectGetMidY( self.view.bounds ) );;
-						 av.frame = CGRectIntegral( av.frame );
-					 }];
+					 animations:^ALERT_VIEW_RESIZE_ANIMS([[UIApplication sharedApplication] keyWindow])];
+#else
+  [UIView beginAnimations:kAlertAnimResize context:NULL];
+  [UIView setAnimationDelegate:self];
+  [UIView setAnimationDuration:duration];
+  [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
+  ALERT_VIEW_RESIZE_ANIMS([[UIApplication sharedApplication] keyWindow])
+  [UIView commitAnimations];
+#endif
 }
-
+   
 - (void) dealloc
 {
 	NSLog( @"TSAlertView: TSAlertViewController dealloc" );
@@ -566,16 +592,34 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	avc.view.backgroundColor = [UIColor clearColor];
 	
 	// $important - the window is released only when the user clicks an alert view button
-	TSAlertOverlayWindow* ow = [[TSAlertOverlayWindow alloc] initWithFrame: [UIScreen mainScreen].bounds];
+  CGRect rect = [UIScreen mainScreen].bounds;
+  const CGFloat kRatio = 0;
+  rect = CGRectInset(rect, -(rect.size.width * kRatio), -(rect.size.height * kRatio));
+  
+	TSAlertOverlayWindow* ow = [[TSAlertOverlayWindow alloc] initWithFrame:rect];
 	ow.alpha = 0.0;
 	ow.backgroundColor = [UIColor clearColor];
+  
+#ifdef __IPHONE_4_0
 	ow.rootViewController = avc;
+#else
+  [ow addSubview:avc];
+#endif
+  
 	[ow makeKeyAndVisible];
 	
 	// fade in the window
-	[UIView animateWithDuration: 0.2 animations: ^{
+  const NSTimeInterval kDuration = 0.2;
+#ifdef NS_BLOCKS_AVAILABLE
+	[UIView animateWithDuration: kDuration animations: ^{
 		ow.alpha = 1;
 	}];
+#else
+  [UIView beginAnimations:nil context:NULL];
+  [UIView setAnimationDuration:kDuration];
+  ow.alpha = 1;
+  [UIView commitAnimations];
+#endif
 	
 	// add and pulse the alertview
 	// add the alertview
@@ -592,10 +636,35 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	}
 }
 
+#ifndef NS_BLOCKS_AVAILABLE
+- (void)animationDidStop:(NSString *)animationID 
+                finished:(NSNumber *)finished 
+                 context:(void *)context
+{
+  if ([animationID isEqual:kAlertAnimPulse1]) {
+    // completion
+    [UIView beginAnimations:kAlertAnimPulse2 context:NULL];
+    [UIView setAnimationDelegate:self];
+    [UIView setAnimationDuration:1.0/15.0];
+    self.transform = CGAffineTransformMakeScale(0.9, 0.9);
+    [UIView commitAnimations];
+  }
+  if ([animationID isEqual:kAlertAnimPulse2]) {
+    // completion
+    [UIView beginAnimations:nil context:NULL];
+    [UIView setAnimationDelegate:self];
+    [UIView setAnimationDuration:1.0/7.5];
+    self.transform = CGAffineTransformIdentity;
+    [UIView commitAnimations];    
+  }
+}
+#endif
+
 - (void) pulse
 {
 	// pulse animation thanks to:  http://delackner.com/blog/2009/12/mimicking-uialertviews-animated-transition/
     self.transform = CGAffineTransformMakeScale(0.6, 0.6);
+#ifdef NS_BLOCKS_AVAILABLE
 	[UIView animateWithDuration: 0.2 
 					 animations: ^{
 						 self.transform = CGAffineTransformMakeScale(1.1, 1.1);
@@ -612,7 +681,14 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 															   }];
 										  }];
 					 }];
-	
+#else
+  [UIView beginAnimations:kAlertAnimPulse1 context:NULL];
+  [UIView setAnimationDelegate:self];
+  [UIView setAnimationDuration:0.2];
+  [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
+  self.transform = CGAffineTransformMakeScale(1.1, 1.1);
+  [UIView commitAnimations];
+#endif  
 }
 
 - (void) onButtonPress: (id) sender
