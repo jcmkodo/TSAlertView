@@ -18,6 +18,7 @@
 static NSString *const kAlertAnimResize = @"ResizeAlertView";
 static NSString *const kAlertAnimPulse1 = @"PulsePart1";
 static NSString *const kAlertAnimPulse2 = @"PulsePart2";
+static NSString *const kAlertAnimDismiss = @"Dismiss";
 
 #endif
 
@@ -340,21 +341,37 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 		
 		c.y = kbframe.origin.y / 2;
 		
+#ifdef NS_BLOCKS_AVAILABLE
 		[UIView animateWithDuration: 0.2 
 						 animations: ^{
 							 self.center = c;
 							 self.frame = CGRectIntegral(self.frame);
 						 }];
+#else
+    [UIView beginAnimations:nil context:NULL];
+    [UIView setAnimationDuration:0.2];
+    self.center = c;
+    self.frame = CGRectIntegral(self.frame);
+    [UIView commitAnimations];    
+#endif
 	}
 }
 
 - (void) onKeyboardWillHide: (NSNotification*) note
 {
+#ifdef NS_BLOCKS_AVAILABLE
 	[UIView animateWithDuration: 0.2 
 					 animations: ^{
 						 self.center = CGPointMake( CGRectGetMidX( self.superview.bounds ), CGRectGetMidY( self.superview.bounds ));
 						 self.frame = CGRectIntegral(self.frame);
 					 }];
+#else
+  [UIView beginAnimations:nil context:NULL];
+  [UIView setAnimationDuration:0.2];
+  self.center = CGPointMake( CGRectGetMidX( self.superview.bounds ), CGRectGetMidY( self.superview.bounds ));
+  self.frame = CGRectIntegral(self.frame);
+  [UIView commitAnimations];    
+#endif
 }
 
 - (NSMutableArray*) buttons
@@ -552,6 +569,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 		self.window.backgroundColor = [UIColor clearColor];
 		self.window.alpha = 1;
 		
+#ifdef NS_BLOCKS_AVAILABLE
 		[UIView animateWithDuration: 0.2 
 						 animations: ^{
 							 [self.window resignKeyWindow];
@@ -560,8 +578,15 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 						 completion: ^(BOOL finished) {
 							 [self releaseWindow: buttonIndex];
 						 }];
-		
+#else
+    [UIView beginAnimations:kAlertAnimDismiss context:[NSNumber numberWithInteger:buttonIndex]];
+    [UIView setAnimationDuration:0.2];
+    [UIView setAnimationDelegate:self];
+    [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
+    [self.window resignKeyWindow];
+    self.window.alpha = 0;    
 		[UIView commitAnimations];
+#endif		
 	}
 	else
 	{
@@ -642,7 +667,6 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
                  context:(void *)context
 {
   if ([animationID isEqual:kAlertAnimPulse1]) {
-    // completion
     [UIView beginAnimations:kAlertAnimPulse2 context:NULL];
     [UIView setAnimationDelegate:self];
     [UIView setAnimationDuration:1.0/15.0];
@@ -650,13 +674,15 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
     [UIView commitAnimations];
   }
   if ([animationID isEqual:kAlertAnimPulse2]) {
-    // completion
     [UIView beginAnimations:nil context:NULL];
     [UIView setAnimationDelegate:self];
     [UIView setAnimationDuration:1.0/7.5];
     self.transform = CGAffineTransformIdentity;
     [UIView commitAnimations];    
   }
+  if ([animationID isEqual:kAlertAnimDismiss]) {
+    [self releaseWindow:[(NSNumber*) context integerValue]];
+  }  
 }
 #endif
 
