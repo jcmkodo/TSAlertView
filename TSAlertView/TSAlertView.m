@@ -15,9 +15,12 @@
 #ifdef NS_BLOCKS_AVAILABLE
 #undef NS_BLOCKS_AVAILABLE
 
+static NSMutableArray *__TSAlertViewStack = nil;
+
 static NSString *const kAlertAnimResize = @"ResizeAlertView";
 static NSString *const kAlertAnimPulse1 = @"PulsePart1";
 static NSString *const kAlertAnimPulse2 = @"PulsePart2";
+static NSString *const kAlertAnimShow = @"Show";
 static NSString *const kAlertAnimDismiss = @"Dismiss";
 
 #endif
@@ -73,14 +76,16 @@ av.frame = CGRectIntegral( av.frame ); }
 	CGGradientRelease(backgroundGradient);
 }
 
+#if __has_feature(objc_arc) == 0
 - (void) dealloc
 {
 	self.oldKeyWindow = nil;
 	
-	NSLog( @"TSAlertView: TSAlertOverlayWindow dealloc" );
+	//NSLog( @"TSAlertView: TSAlertOverlayWindow dealloc" );
 	
 	[super dealloc];
 }
+#endif
 
 @end
 
@@ -103,10 +108,22 @@ av.frame = CGRectIntegral( av.frame ); }
 - (void) onKeyboardWillHide: (NSNotification*) note;
 - (void) onButtonPress: (id) sender;
 #ifndef NS_BLOCKS_AVAILABLE
++ (void)animationDidStop:(NSString *)animationID 
+                finished:(NSNumber *)finished 
+                 context:(void *)context;
 - (void)animationDidStop:(NSString *)animationID 
                 finished:(NSNumber *)finished 
                  context:(void *)context;
 #endif
+// Stack
++ (void) show:(TSAlertView*)alertView;
++ (void) hide:(TSAlertView*)alertView 
+  buttonIndex:(NSUInteger)index 
+     animated:(BOOL)animated;
++ (void) push:(TSAlertView*)alertView;
++ (void) pop:(TSAlertView*)alertView 
+ buttonIndex:(NSUInteger)index 
+    animated:(BOOL)animated;
 @end
 
 @interface TSAlertViewController : UIViewController
@@ -138,12 +155,14 @@ av.frame = CGRectIntegral( av.frame ); }
   [UIView commitAnimations];
 #endif
 }
-   
+  
+#if __has_feature(objc_arc) == 0
 - (void) dealloc
 {
-	NSLog( @"TSAlertView: TSAlertViewController dealloc" );
+//	NSLog( @"TSAlertView: TSAlertViewController dealloc" );
 	[super dealloc];
 }
+#endif
 
 @end
 
@@ -165,6 +184,12 @@ const CGFloat kTSAlertView_TopMargin	= 16.0;
 const CGFloat kTSAlertView_BottomMargin = 15.0;
 const CGFloat kTSAlertView_RowMargin	= 5.0;
 const CGFloat kTSAlertView_ColumnMargin = 10.0;
+
++ (void) initialize {
+  if (self == [TSAlertView class]) {
+    __TSAlertViewStack = [[NSMutableArray alloc] init];
+  }
+}
 
 - (id) init 
 {
@@ -244,18 +269,20 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 
 - (void)dealloc 
 {
+  [[NSNotificationCenter defaultCenter] removeObserver: self ];
+	
+	//NSLog( @"TSAlertView: TSAlertOverlayWindow dealloc" );
+  
+#if __has_feature(objc_arc) == 0
 	[_backgroundImage release];
 	[_buttons release];
 	[_titleLabel release];
 	[_messageLabel release];
 	[_messageTextView release];
 	[_messageTextViewMaskImageView release];
-	
-	[[NSNotificationCenter defaultCenter] removeObserver: self ];
-	
-	NSLog( @"TSAlertView: TSAlertOverlayWindow dealloc" );
-	
+		
     [super dealloc];
+#endif
 }
 
 
@@ -378,7 +405,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 {
 	if ( _buttons == nil )
 	{
-		_buttons = [[NSMutableArray arrayWithCapacity:4] retain];
+		_buttons = [[NSMutableArray alloc] initWithCapacity:4];
 	}
 	
 	return _buttons;
@@ -564,36 +591,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 		[self.delegate alertView: self willDismissWithButtonIndex: buttonIndex ];
 	}
 	
-	if ( animated )
-	{
-		self.window.backgroundColor = [UIColor clearColor];
-		self.window.alpha = 1;
-		
-#ifdef NS_BLOCKS_AVAILABLE
-		[UIView animateWithDuration: 0.2 
-						 animations: ^{
-							 [self.window resignKeyWindow];
-							 self.window.alpha = 0;
-						 }
-						 completion: ^(BOOL finished) {
-							 [self releaseWindow: buttonIndex];
-						 }];
-#else
-    [UIView beginAnimations:kAlertAnimDismiss context:[NSNumber numberWithInteger:buttonIndex]];
-    [UIView setAnimationDuration:0.2];
-    [UIView setAnimationDelegate:self];
-    [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
-    [self.window resignKeyWindow];
-    self.window.alpha = 0;    
-		[UIView commitAnimations];
-#endif		
-	}
-	else
-	{
-		[self.window resignKeyWindow];
-		
-		[self releaseWindow: buttonIndex];
-	}
+  [TSAlertView pop:self buttonIndex:buttonIndex animated:animated];
 }
 
 - (void) releaseWindow: (int) buttonIndex
@@ -613,7 +611,20 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 {
 	[[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode beforeDate:[NSDate date]];
 	
-	TSAlertViewController* avc = [[[TSAlertViewController alloc] init] autorelease];
+  [TSAlertView push:self];
+}
+
+#pragma mark -
+
++ (void) show:(TSAlertView*)alertView 
+{
+  NSLog(@"push\n");
+  
+  TSAlertViewController* avc = [[TSAlertViewController alloc] init];
+#if __has_feature(objc_arc) == 0
+  [avc autorelease];
+#endif
+  
 	avc.view.backgroundColor = [UIColor clearColor];
 	
 	// $important - the window is released only when the user clicks an alert view button
@@ -640,7 +651,9 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 		ow.alpha = 1;
 	}];
 #else
-  [UIView beginAnimations:nil context:NULL];
+  [UIView beginAnimations:kAlertAnimShow context:NULL];
+  [UIView setAnimationDelegate:self];
+  [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
   [UIView setAnimationDuration:kDuration];
   ow.alpha = 1;
   [UIView commitAnimations];
@@ -648,18 +661,91 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	
 	// add and pulse the alertview
 	// add the alertview
-	[avc.view addSubview: self];
-	[self sizeToFit];
-	self.center = CGPointMake( CGRectGetMidX( avc.view.bounds ), CGRectGetMidY( avc.view.bounds ) );;
-	self.frame = CGRectIntegral( self.frame );
-	[self pulse];
+	[avc.view addSubview: alertView];
+	[alertView sizeToFit];
+	alertView.center = CGPointMake( CGRectGetMidX( avc.view.bounds ), CGRectGetMidY( avc.view.bounds ) );;
+	alertView.frame = CGRectIntegral( alertView.frame );
+	[alertView pulse];
 	
-	if ( self.style == TSAlertViewStyleInput )
+	if ( alertView.style == TSAlertViewStyleInput )
 	{
-		[self layoutSubviews];
-		[self.inputTextField becomeFirstResponder];
+		[alertView layoutSubviews];
+		[alertView.inputTextField becomeFirstResponder];
 	}
 }
+
++ (void) hide:(TSAlertView*)alertView 
+  buttonIndex:(NSUInteger)buttonIndex 
+     animated:(BOOL)animated
+{
+  NSLog(@"pop\n");  
+  
+  if ( animated )
+	{
+		alertView.window.backgroundColor = [UIColor clearColor];
+		alertView.window.alpha = 1;
+		
+#ifdef NS_BLOCKS_AVAILABLE
+		[UIView animateWithDuration: 0.2 
+                     animations: ^{
+                       [alertView.window resignKeyWindow];
+                       alertView.window.alpha = 0;
+                     }
+                     completion: ^(BOOL finished) {
+                       [alertView releaseWindow: buttonIndex];
+                     }];
+#else
+    [UIView beginAnimations:kAlertAnimDismiss 
+                    context:(__bridge void*) [[NSArray alloc] initWithObjects:
+                                              alertView, 
+                                              [NSNumber numberWithInteger:buttonIndex],
+                                              nil]];
+    [UIView setAnimationDuration:0.2];
+    [UIView setAnimationDelegate:self];
+    [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
+    [alertView.window resignKeyWindow];
+    alertView.window.alpha = 0;    
+		[UIView commitAnimations];
+#endif		
+	}
+	else
+	{
+		[alertView.window resignKeyWindow];
+		[alertView releaseWindow: buttonIndex];
+	}
+}
+
++ (void) push:(TSAlertView*)alertView
+{
+  // any alerts to pop first?
+  if ([__TSAlertViewStack count]) {
+    NSLog(@"%d", [__TSAlertViewStack count]);
+  } else {
+    // this is the first...
+    [__TSAlertViewStack addObject:alertView];
+    [self show:alertView];
+  }  
+}
+
++ (void) pop:(TSAlertView*)alertView 
+ buttonIndex:(NSUInteger)index 
+    animated:(BOOL)animated
+{
+  // should only be the top view...
+  NSAssert([__TSAlertViewStack lastObject] == alertView, @"Should be top view");
+  
+  [__TSAlertViewStack removeLastObject];
+  
+  [self hide:alertView buttonIndex:index animated:animated];
+  
+  // is there a view underneath to display now?
+  if ([__TSAlertViewStack count]) {
+    
+  }
+}
+
+#pragma mark -
+
 
 #ifndef NS_BLOCKS_AVAILABLE
 - (void)animationDidStop:(NSString *)animationID 
@@ -684,6 +770,27 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
     [self releaseWindow:[(NSNumber*) context integerValue]];
   }  
 }
+
++ (void)animationDidStop:(NSString *)animationID 
+                finished:(NSNumber *)finished 
+                 context:(void *)context
+{
+  if ([animationID isEqual:kAlertAnimShow]) {
+    //
+  }
+  if ([animationID isEqual:kAlertAnimDismiss]) {
+    NSArray *array = (__bridge NSArray*) context;
+    TSAlertView *alert = [array objectAtIndex:0];
+    NSNumber *buttonIndex = [array objectAtIndex:1];
+    [alert releaseWindow:[buttonIndex unsignedIntegerValue]];
+    
+#if __has_feature(objc_arc) == 0
+    // array can't be autoreleased...
+    [array release];
+#endif
+  }
+}
+
 #endif
 
 - (void) pulse
