@@ -12,10 +12,10 @@
 //#error Requires Blocks!
 //#endif
 
+static NSMutableArray *__TSAlertViewStack = nil;
+
 #ifdef NS_BLOCKS_AVAILABLE
 #undef NS_BLOCKS_AVAILABLE
-
-static NSMutableArray *__TSAlertViewStack = nil;
 
 static NSString *const kAlertAnimResize = @"ResizeAlertView";
 static NSString *const kAlertAnimPulse1 = @"PulsePart1";
