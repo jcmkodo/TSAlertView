@@ -30,7 +30,8 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 #endif
 
-static const NSTimeInterval kAlertViewAnimDuration = 0.2;
+static const NSTimeInterval kAlertBoxAnimDuration = 0.2;
+static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 
 #define ALERT_VIEW_RESIZE_ANIMS(centerOn) { \
 [av sizeToFit]; \
@@ -54,10 +55,11 @@ av.frame = CGRectIntegral( av.frame ); }
 	
 	CGFloat width			= self.frame.size.width;
 	CGFloat height			= self.frame.size.height;
-	CGFloat locations[3]	= { 0.0, 0.5, 1.0 	};
-	CGFloat components[12]	= {	1, 1, 1, 0.5,
-		0, 0, 0, 0.5,
-		0, 0, 0, 0.7	};
+	CGFloat locations[2]	= { 0.0, 0.8 	};
+	CGFloat components[12]	= {	
+    1, 1, 1, 0.5,
+		0, 0, 0, 1.0	
+  };
 	
 	CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
 	CGGradientRef backgroundGradient = CGGradientCreateWithColorComponents(colorspace, components, locations, 3);
@@ -65,8 +67,10 @@ av.frame = CGRectIntegral( av.frame ); }
 	
 	CGContextDrawRadialGradient(UIGraphicsGetCurrentContext(), 
                               backgroundGradient, 
-                              CGPointMake(width/2, height/2), 0,
-                              CGPointMake(width/2, height/2), width,
+                              CGPointMake(width/2, height/2), 
+                              0,
+                              CGPointMake(width/2, height/2), 
+                              hypotf(width, height),
                               0);
 	
 	CGGradientRelease(backgroundGradient);
@@ -174,6 +178,7 @@ av.frame = CGRectIntegral( av.frame ); }
   [UIView beginAnimations:kAlertAnimResize context:NULL];
   [UIView setAnimationDelegate:self];
   [UIView setAnimationDuration:duration];
+  [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
   [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
   ALERT_VIEW_RESIZE_ANIMS([[UIApplication sharedApplication] keyWindow])
   [UIView commitAnimations];
@@ -383,9 +388,12 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	{
 		CGPoint c = self.center;
 		
-		if ( self.frame.size.height > kbframe.origin.y - 20 )
+//    const CGFloat keyboardPad = 20;
+    const CGFloat keyboardPad = 0;
+    
+		if ( self.frame.size.height > kbframe.origin.y - keyboardPad )
 		{
-			self.maxHeight = kbframe.origin.y - 20;
+			self.maxHeight = kbframe.origin.y - keyboardPad;
 			[self sizeToFit];
 			[self layoutSubviews];
 		}
@@ -393,14 +401,15 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 		c.y = kbframe.origin.y / 2;
 		
 #ifdef NS_BLOCKS_AVAILABLE
-		[UIView animateWithDuration: kAlertViewAnimDuration 
+		[UIView animateWithDuration: kAlertBoxAnimDuration 
                      animations: ^{
                        self.center = c;
                        self.frame = CGRectIntegral(self.frame);
                      }];
 #else
     [UIView beginAnimations:nil context:NULL];
-    [UIView setAnimationDuration:kAlertViewAnimDuration];
+    [UIView setAnimationDuration:kAlertBoxAnimDuration];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
     self.center = c;
     self.frame = CGRectIntegral(self.frame);
     [UIView commitAnimations];    
@@ -411,14 +420,15 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 - (void) onKeyboardWillHide: (NSNotification*) note
 {
 #ifdef NS_BLOCKS_AVAILABLE
-	[UIView animateWithDuration: kAlertViewAnimDuration 
+	[UIView animateWithDuration: kAlertBoxAnimDuration 
                    animations: ^{
                      self.center = CGPointMake( CGRectGetMidX( self.superview.bounds ), CGRectGetMidY( self.superview.bounds ));
                      self.frame = CGRectIntegral(self.frame);
                    }];
 #else
   [UIView beginAnimations:nil context:NULL];
-  [UIView setAnimationDuration:kAlertViewAnimDuration];
+  [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+  [UIView setAnimationDuration:kAlertBoxAnimDuration];
   self.center = CGPointMake( CGRectGetMidX( self.superview.bounds ), CGRectGetMidY( self.superview.bounds ));
   self.frame = CGRectIntegral(self.frame);
   [UIView commitAnimations];    
@@ -441,6 +451,8 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	{
 		_titleLabel = [[UILabel alloc] init];
 		_titleLabel.font = [UIFont boldSystemFontOfSize: 18];
+    _titleLabel.shadowColor = [UIColor blackColor];
+    _titleLabel.shadowOffset = CGSizeMake(0, -1);
 		_titleLabel.backgroundColor = [UIColor clearColor];
 		_titleLabel.textColor = [UIColor whiteColor];
 		_titleLabel.textAlignment = UITextAlignmentCenter;
@@ -458,6 +470,8 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 		_messageLabel = [[UILabel alloc] init];
 		_messageLabel.font = [UIFont systemFontOfSize: 16];
 		_messageLabel.backgroundColor = [UIColor clearColor];
+    _messageLabel.shadowColor = [UIColor blackColor];
+    _messageLabel.shadowOffset = CGSizeMake(0, -1);
 		_messageLabel.textColor = [UIColor whiteColor];
 		_messageLabel.textAlignment = UITextAlignmentCenter;
 		_messageLabel.lineBreakMode = UILineBreakModeWordWrap;
@@ -505,6 +519,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	{
 		_inputTextField = [[UITextField alloc] init];
 		_inputTextField.borderStyle = UITextBorderStyleRoundedRect;
+    _inputTextField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
 	}
 	
 	return _inputTextField;
@@ -573,6 +588,9 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 {
 	UIButton* b = [UIButton buttonWithType: UIButtonTypeCustom];
 	[b setTitle: t forState: UIControlStateNormal];
+  b.titleLabel.font = [UIFont boldSystemFontOfSize:18];
+  b.titleLabel.shadowColor = [UIColor blackColor];
+  b.titleLabel.shadowOffset = CGSizeMake(0, -2);
 	
 	UIImage* buttonBgNormal = [UIImage imageNamed: @"TSAlertViewButtonBackground.png"];
 	buttonBgNormal = [buttonBgNormal stretchableImageWithLeftCapWidth: buttonBgNormal.size.width / 2.0 topCapHeight: buttonBgNormal.size.height / 2.0];
@@ -603,12 +621,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 }
 
 - (void) dismissWithClickedButtonIndex: (NSInteger)buttonIndex animated: (BOOL) animated
-{
-	if ( self.style == TSAlertViewStyleInput && [self.inputTextField isFirstResponder] )
-	{
-		[self.inputTextField resignFirstResponder];
-	}
-	
+{	
 	if ( [self.delegate respondsToSelector: @selector(alertView:willDismissWithButtonIndex:)] )
 	{
 		[self.delegate alertView: self willDismissWithButtonIndex: buttonIndex ];
@@ -632,14 +645,10 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 #endif
 }
 
-- (void) show
-{
+- (void) show {
 	[[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode beforeDate:[NSDate date]];
-	
   [TSAlertView push:self];
 }
-
-#pragma mark -
 
 + (void) show:(TSAlertView*)alertView 
 {
@@ -671,21 +680,22 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   
 	[ow makeKeyAndVisible];
 	
-	// fade in the window
-  const NSTimeInterval kDuration = kAlertViewAnimDuration;
+	// fade in the window  
 #ifdef NS_BLOCKS_AVAILABLE
-	[UIView animateWithDuration: kDuration 
-                   animations: ^{
+  [UIView animateWithDuration:kAlertBackgroundAnimDuration 
+                        delay:0 
+                      options:UIViewAnimationOptionCurveEaseIn 
+                   animations:^{
                      ow.alpha = 1;
-                   }
-                   completion: ^(BOOL finished) {
+                   } completion:^(BOOL finished) {
                      [self showAlert:alertView];
                    }];
 #else
   [UIView beginAnimations:kAlertAnimShow context:alertView];
   [UIView setAnimationDelegate:self];
+  [UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
   [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
-  [UIView setAnimationDuration:kDuration];
+  [UIView setAnimationDuration:kAlertBackgroundAnimDuration];
   ow.alpha = 1;
   [UIView commitAnimations];
 #endif	
@@ -708,12 +718,6 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	alertView.center = CGPointMake( CGRectGetMidX( avc.view.bounds ), CGRectGetMidY( avc.view.bounds ) );;
 	alertView.frame = CGRectIntegral( alertView.frame );
 	[alertView pulse];
-	
-	if ( alertView.style == TSAlertViewStyleInput )
-	{
-		[alertView layoutSubviews];
-		[alertView.inputTextField becomeFirstResponder];
-	}
 }
 
 + (void) hide:(TSAlertView*)alertView 
@@ -723,12 +727,19 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   if ( animated )
 	{
 #ifdef NS_BLOCKS_AVAILABLE
-		[UIView animateWithDuration: kAlertViewAnimDuration 
-                     animations: ^{
+    [UIView animateWithDuration:kAlertBoxAnimDuration 
+                          delay:0 
+                        options:UIViewAnimationOptionCurveEaseInOut 
+                     animations:^{
                        alertView.alpha = 0;
-                     }
-                     completion: ^(BOOL finished) {
-                       [UIView animateWithDuration:kAlertViewAnimDuration 
+                     } completion:^(BOOL finished) {
+                       if ( alertView.style == TSAlertViewStyleInput && [alertView.inputTextField isFirstResponder] ) {
+                         [alertView.inputTextField resignFirstResponder];
+                       }
+                       
+                       [UIView animateWithDuration:kAlertBackgroundAnimDuration 
+                                             delay:0 
+                                           options:UIViewAnimationOptionCurveEaseOut 
                                         animations:^{
                                           [alertView.window resignKeyWindow];
                                           alertView.window.alpha = 0;
@@ -746,10 +757,11 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
                                               alertView, 
                                               [NSNumber numberWithInteger:buttonIndex],
                                               nil]];
-    [UIView setAnimationDuration:kAlertViewAnimDuration];
+    [UIView setAnimationDuration:kAlertBoxAnimDuration];
     [UIView setAnimationDelegate:self];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
     [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
-    alertView.alpha = 0;
+    [[[alertView.window subviews] objectAtIndex:0] setAlpha:0];
 		[UIView commitAnimations];
 #endif		
 	}
@@ -786,13 +798,9 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 {
   // should only be the top view...
   NSAssert([__TSAlertViewStack lastObject] == alertView, @"Should be top view");
-  
   [__TSAlertViewStack removeLastObject];
-  
   [self hide:alertView buttonIndex:index animated:animated];  
 }
-
-#pragma mark -
 
 #ifndef NS_BLOCKS_AVAILABLE
 - (void)animationDidStop:(NSString *)animationID 
@@ -802,6 +810,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   if ([animationID isEqual:kAlertAnimPulse1]) {
     [UIView beginAnimations:kAlertAnimPulse2 context:NULL];
     [UIView setAnimationDelegate:self];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
     [UIView setAnimationDuration:1.0/15.0];
     self.transform = CGAffineTransformMakeScale(0.9, 0.9);
     [UIView commitAnimations];
@@ -809,9 +818,15 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   if ([animationID isEqual:kAlertAnimPulse2]) {
     [UIView beginAnimations:nil context:NULL];
     [UIView setAnimationDelegate:self];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
     [UIView setAnimationDuration:1.0/7.5];
     self.transform = CGAffineTransformIdentity;
     [UIView commitAnimations];    
+    if ( self.style == TSAlertViewStyleInput )
+    {
+      [self layoutSubviews];
+      [self.inputTextField becomeFirstResponder];
+    }
   }
   if ([animationID isEqual:kAlertAnimDismiss1]) {
     [self releaseWindow:[(__bridge NSNumber*) context integerValue]];
@@ -831,11 +846,16 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
     NSArray *array = (__bridge NSArray*) context;
     TSAlertView *alertView = [array objectAtIndex:0];
 
+    if ( alertView.style == TSAlertViewStyleInput && [alertView.inputTextField isFirstResponder] ) {
+      [alertView.inputTextField resignFirstResponder];
+    }
+    
     [UIView beginAnimations:kAlertAnimDismiss2 context:context];
     [UIView setAnimationDelegate:self];
-    [UIView setAnimationDuration:kAlertViewAnimDuration];
+    [UIView setAnimationDuration:kAlertBackgroundAnimDuration];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
     [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
-    alertView.window.alpha = 0;
+    alertView.alpha = 0;
     [UIView commitAnimations];
   }
   
@@ -858,17 +878,23 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
       [self show:[__TSAlertViewStack lastObject]];
     }
   }
-
+  
 }
 
 #endif
 
 - (void) pulse
 {
+  if ( self.style == TSAlertViewStyleInput )
+  {
+    [self layoutSubviews];
+    [self.inputTextField becomeFirstResponder];
+  }
+  
 	// pulse animation thanks to:  http://delackner.com/blog/2009/12/mimicking-uialertviews-animated-transition/
   self.transform = CGAffineTransformMakeScale(0.6, 0.6);
 #ifdef NS_BLOCKS_AVAILABLE
-	[UIView animateWithDuration: kAlertViewAnimDuration 
+	[UIView animateWithDuration: kAlertBoxAnimDuration 
                    animations: ^{
                      self.transform = CGAffineTransformMakeScale(1.1, 1.1);
                    }
@@ -881,14 +907,21 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
                                         [UIView animateWithDuration:1.0/7.5
                                                          animations: ^{
                                                            self.transform = CGAffineTransformIdentity;
+                                                           if ( self.style == TSAlertViewStyleInput )
+                                                           {
+                                                             [self layoutSubviews];
+                                                             [self.inputTextField becomeFirstResponder];
+                                                           }
                                                          }];
                                       }];
                    }];
 #else
   [UIView beginAnimations:kAlertAnimPulse1 context:NULL];
   [UIView setAnimationDelegate:self];
-  [UIView setAnimationDuration:kAlertViewAnimDuration];
+  [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+  [UIView setAnimationDuration:kAlertBoxAnimDuration];
   [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
+  [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
   self.transform = CGAffineTransformMakeScale(1.1, 1.1);
   [UIView commitAnimations];
 #endif  
@@ -925,7 +958,10 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	CGSize  inputTextFieldSize = [self inputTextFieldSize];
 	CGSize  buttonsAreaSize = stacked ? [self buttonsAreaSize_Stacked] : [self buttonsAreaSize_SideBySide];
 	
-	CGFloat inputRowHeight = self.style == TSAlertViewStyleInput ? inputTextFieldSize.height + kTSAlertView_RowMargin : 0;
+	CGFloat inputRowHeight = ( 
+                            self.style == TSAlertViewStyleInput | 
+                            self.style == TSAlertViewStyleActivityView
+                            ) ? inputTextFieldSize.height + kTSAlertView_RowMargin : 0;
 	
 	CGFloat totalHeight = kTSAlertView_TopMargin + titleLabelSize.height + kTSAlertView_RowMargin + messageViewSize.height + inputRowHeight + kTSAlertView_RowMargin + buttonsAreaSize.height + kTSAlertView_BottomMargin;
 	

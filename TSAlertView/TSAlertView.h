@@ -18,6 +18,7 @@ typedef enum
 {
 	TSAlertViewStyleNormal,
 	TSAlertViewStyleInput,
+	TSAlertViewStyleActivityView,
 	
 } TSAlertViewStyle;
 
