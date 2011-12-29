@@ -17,7 +17,7 @@
 #endif
 
 #ifdef NS_BLOCKS_AVAILABLE
-#undef NS_BLOCKS_AVAILABLE
+//#undef NS_BLOCKS_AVAILABLE
 
 static NSMutableArray *__TSAlertViewStack = nil;
 
@@ -278,7 +278,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 - (void)dealloc 
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self ];
-
+  
 #if __has_feature(objc_arc) == 0
 	[_backgroundImage release];
 	[_buttons release];
@@ -654,9 +654,13 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	// fade in the window
   const NSTimeInterval kDuration = 0.2;
 #ifdef NS_BLOCKS_AVAILABLE
-	[UIView animateWithDuration: kDuration animations: ^{
-		ow.alpha = 1;
-	}];
+	[UIView animateWithDuration: kDuration 
+                   animations: ^{
+                     ow.alpha = 1;
+                   }
+                   completion: ^(BOOL finished) {
+                     //
+                   }];
 #else
   [UIView beginAnimations:kAlertAnimShow context:NULL];
   [UIView setAnimationDelegate:self];
@@ -698,13 +702,17 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
                      }
                      completion: ^(BOOL finished) {
                        [alertView releaseWindow: buttonIndex];
+                       // some other to show?
+                       if ([__TSAlertViewStack count]) {
+                         [self show:[__TSAlertViewStack lastObject]];
+                       }
                      }];
 #else
     [UIView beginAnimations:kAlertAnimDismiss 
                     context:(__bridge void*) [[NSArray alloc] initWithObjects:
-                             alertView, 
-                             [NSNumber numberWithInteger:buttonIndex],
-                             nil]];
+                                              alertView, 
+                                              [NSNumber numberWithInteger:buttonIndex],
+                                              nil]];
     [UIView setAnimationDuration:0.2];
     [UIView setAnimationDelegate:self];
     [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
