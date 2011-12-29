@@ -17,47 +17,35 @@
 #endif
 
 #ifdef NS_BLOCKS_AVAILABLE
-//#undef NS_BLOCKS_AVAILABLE
+#undef NS_BLOCKS_AVAILABLE
 
 static NSMutableArray *__TSAlertViewStack = nil;
 
-static NSString *const kAlertAnimResize = @"ResizeAlertView";
-static NSString *const kAlertAnimPulse1 = @"PulsePart1";
-static NSString *const kAlertAnimPulse2 = @"PulsePart2";
-static NSString *const kAlertAnimShow = @"Show";
-static NSString *const kAlertAnimDismiss = @"Dismiss";
+static NSString *const kAlertAnimResize   = @"ResizeAlertView";
+static NSString *const kAlertAnimPulse1   = @"PulsePart1";
+static NSString *const kAlertAnimPulse2   = @"PulsePart2";
+static NSString *const kAlertAnimShow     = @"Show";
+static NSString *const kAlertAnimDismiss1 = @"Dismiss1";
+static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 #endif
+
+static const NSTimeInterval kAlertViewAnimDuration = 0.2;
 
 #define ALERT_VIEW_RESIZE_ANIMS(centerOn) { \
 [av sizeToFit]; \
 av.center = CGPointMake( CGRectGetMidX( centerOn.bounds ), CGRectGetMidY( centerOn.bounds ) ); \
 av.frame = CGRectIntegral( av.frame ); }
 
-@interface TSAlertOverlayWindow : UIWindow
-{
-}
-#if __has_feature(objc_arc)
-@property (nonatomic,strong) UIWindow* oldKeyWindow;
-#else
-@property (nonatomic,retain) UIWindow* oldKeyWindow;
-#endif
+@interface TSAlertViewGradientView : UIView
 @end
+@implementation TSAlertViewGradientView
 
-@implementation  TSAlertOverlayWindow
-@synthesize oldKeyWindow;
-
-- (void) makeKeyAndVisible
-{
-	self.oldKeyWindow = [[UIApplication sharedApplication] keyWindow];
-	self.windowLevel = UIWindowLevelAlert;
-	[super makeKeyAndVisible];
-}
-
-- (void) resignKeyWindow
-{
-	[super resignKeyWindow];
-	[self.oldKeyWindow makeKeyWindow];
+- (id) initWithFrame:(CGRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    self.backgroundColor = [UIColor clearColor];
+  }
+  return self;
 }
 
 - (void) drawRect: (CGRect) rect
@@ -82,6 +70,32 @@ av.frame = CGRectIntegral( av.frame ); }
                               0);
 	
 	CGGradientRelease(backgroundGradient);
+}
+
+@end
+
+@interface TSAlertOverlayWindow : UIWindow
+#if __has_feature(objc_arc)
+@property (nonatomic,strong) UIWindow* oldKeyWindow;
+#else
+@property (nonatomic,retain) UIWindow* oldKeyWindow;
+#endif
+@end
+
+@implementation  TSAlertOverlayWindow
+@synthesize oldKeyWindow;
+
+- (void) makeKeyAndVisible
+{
+	self.oldKeyWindow = [[UIApplication sharedApplication] keyWindow];
+	self.windowLevel = UIWindowLevelAlert;
+	[super makeKeyAndVisible];
+}
+
+- (void) resignKeyWindow
+{
+	[super resignKeyWindow];
+	[self.oldKeyWindow makeKeyWindow];
 }
 
 #if __has_feature(objc_arc) == 0
@@ -132,6 +146,8 @@ av.frame = CGRectIntegral( av.frame ); }
 + (void) pop:(TSAlertView*)alertView 
  buttonIndex:(NSUInteger)index 
     animated:(BOOL)animated;
+// More authentic animation...
++ (void) showAlert:(TSAlertView*)alert;
 @end
 
 @interface TSAlertViewController : UIViewController
@@ -377,14 +393,14 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 		c.y = kbframe.origin.y / 2;
 		
 #ifdef NS_BLOCKS_AVAILABLE
-		[UIView animateWithDuration: 0.2 
+		[UIView animateWithDuration: kAlertViewAnimDuration 
                      animations: ^{
                        self.center = c;
                        self.frame = CGRectIntegral(self.frame);
                      }];
 #else
     [UIView beginAnimations:nil context:NULL];
-    [UIView setAnimationDuration:0.2];
+    [UIView setAnimationDuration:kAlertViewAnimDuration];
     self.center = c;
     self.frame = CGRectIntegral(self.frame);
     [UIView commitAnimations];    
@@ -395,14 +411,14 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 - (void) onKeyboardWillHide: (NSNotification*) note
 {
 #ifdef NS_BLOCKS_AVAILABLE
-	[UIView animateWithDuration: 0.2 
+	[UIView animateWithDuration: kAlertViewAnimDuration 
                    animations: ^{
                      self.center = CGPointMake( CGRectGetMidX( self.superview.bounds ), CGRectGetMidY( self.superview.bounds ));
                      self.frame = CGRectIntegral(self.frame);
                    }];
 #else
   [UIView beginAnimations:nil context:NULL];
-  [UIView setAnimationDuration:0.2];
+  [UIView setAnimationDuration:kAlertViewAnimDuration];
   self.center = CGPointMake( CGRectGetMidX( self.superview.bounds ), CGRectGetMidY( self.superview.bounds ));
   self.frame = CGRectIntegral(self.frame);
   [UIView commitAnimations];    
@@ -643,6 +659,10 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	ow.alpha = 0.0;
 	ow.backgroundColor = [UIColor clearColor];
   
+  // gradient view
+  TSAlertViewGradientView *gradient = [[[TSAlertViewGradientView alloc] initWithFrame:rect] autorelease];
+  [ow addSubview:gradient];
+  
 #ifdef __IPHONE_4_0
 	ow.rootViewController = avc;
 #else
@@ -652,26 +672,37 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	[ow makeKeyAndVisible];
 	
 	// fade in the window
-  const NSTimeInterval kDuration = 0.2;
+  const NSTimeInterval kDuration = kAlertViewAnimDuration;
 #ifdef NS_BLOCKS_AVAILABLE
 	[UIView animateWithDuration: kDuration 
                    animations: ^{
                      ow.alpha = 1;
                    }
                    completion: ^(BOOL finished) {
-                     //
+                     [self showAlert:alertView];
                    }];
 #else
-  [UIView beginAnimations:kAlertAnimShow context:NULL];
+  [UIView beginAnimations:kAlertAnimShow context:alertView];
   [UIView setAnimationDelegate:self];
   [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
   [UIView setAnimationDuration:kDuration];
   ow.alpha = 1;
   [UIView commitAnimations];
+#endif	
+}
+
++ (void) showAlert:(TSAlertView*)alertView {
+  UIViewController *avc;
+  UIWindow *ow = [[UIApplication sharedApplication] keyWindow];
+#ifdef __IPHONE_4_0
+  avc = ow.rootViewController;
+#else
+  avc = [[ow subviews] objectAtIndex:0];
 #endif
-	
-	// add and pulse the alertview
+  
+  // add and pulse the alertview
 	// add the alertview
+  alertView.alpha = 1;
 	[avc.view addSubview: alertView];
 	[alertView sizeToFit];
 	alertView.center = CGPointMake( CGRectGetMidX( avc.view.bounds ), CGRectGetMidY( avc.view.bounds ) );;
@@ -691,33 +722,34 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 {
   if ( animated )
 	{
-		alertView.window.backgroundColor = [UIColor clearColor];
-		alertView.window.alpha = 1;
-		
 #ifdef NS_BLOCKS_AVAILABLE
-		[UIView animateWithDuration: 0.2 
+		[UIView animateWithDuration: kAlertViewAnimDuration 
                      animations: ^{
-                       [alertView.window resignKeyWindow];
-                       alertView.window.alpha = 0;
+                       alertView.alpha = 0;
                      }
                      completion: ^(BOOL finished) {
-                       [alertView releaseWindow: buttonIndex];
-                       // some other to show?
-                       if ([__TSAlertViewStack count]) {
-                         [self show:[__TSAlertViewStack lastObject]];
-                       }
+                       [UIView animateWithDuration:kAlertViewAnimDuration 
+                                        animations:^{
+                                          [alertView.window resignKeyWindow];
+                                          alertView.window.alpha = 0;
+                                        } completion:^(BOOL finished) {
+                                          [alertView releaseWindow: buttonIndex];
+                                          // some other to show?
+                                          if ([__TSAlertViewStack count]) {
+                                            [self show:[__TSAlertViewStack lastObject]];
+                                          }
+                                        }];
                      }];
 #else
-    [UIView beginAnimations:kAlertAnimDismiss 
+    [UIView beginAnimations:kAlertAnimDismiss1 
                     context:(__bridge void*) [[NSArray alloc] initWithObjects:
                                               alertView, 
                                               [NSNumber numberWithInteger:buttonIndex],
                                               nil]];
-    [UIView setAnimationDuration:0.2];
+    [UIView setAnimationDuration:kAlertViewAnimDuration];
     [UIView setAnimationDelegate:self];
     [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
-    [alertView.window resignKeyWindow];
-    alertView.window.alpha = 0;    
+    alertView.alpha = 0;
 		[UIView commitAnimations];
 #endif		
 	}
@@ -781,7 +813,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
     self.transform = CGAffineTransformIdentity;
     [UIView commitAnimations];    
   }
-  if ([animationID isEqual:kAlertAnimDismiss]) {
+  if ([animationID isEqual:kAlertAnimDismiss1]) {
     [self releaseWindow:[(__bridge NSNumber*) context integerValue]];
   }  
 }
@@ -791,24 +823,42 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
                  context:(void *)context
 {
   if ([animationID isEqual:kAlertAnimShow]) {
-    //
+    [self showAlert:context];
   }
-  if ([animationID isEqual:kAlertAnimDismiss]) {
+  
+  if ([animationID isEqual:kAlertAnimDismiss1]) 
+  {
     NSArray *array = (__bridge NSArray*) context;
-    TSAlertView *alert = [array objectAtIndex:0];
+    TSAlertView *alertView = [array objectAtIndex:0];
+
+    [UIView beginAnimations:kAlertAnimDismiss2 context:context];
+    [UIView setAnimationDelegate:self];
+    [UIView setAnimationDuration:kAlertViewAnimDuration];
+    [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
+    alertView.window.alpha = 0;
+    [UIView commitAnimations];
+  }
+  
+  if ([animationID isEqual:kAlertAnimDismiss2]) 
+  {
+    NSArray *array = (__bridge NSArray*) context;
+    TSAlertView *alertView = [array objectAtIndex:0];
     NSNumber *buttonIndex = [array objectAtIndex:1];
-    [alert releaseWindow:[buttonIndex unsignedIntegerValue]];
+    
+    [alertView releaseWindow:[buttonIndex unsignedIntegerValue]];
+    [alertView.window resignKeyWindow];
     
 #if __has_feature(objc_arc) == 0
     // array can't be autoreleased...
     [array release];
-#endif
+#endif 
     
     // some other to show?
     if ([__TSAlertViewStack count]) {
       [self show:[__TSAlertViewStack lastObject]];
     }
   }
+
 }
 
 #endif
@@ -818,7 +868,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	// pulse animation thanks to:  http://delackner.com/blog/2009/12/mimicking-uialertviews-animated-transition/
   self.transform = CGAffineTransformMakeScale(0.6, 0.6);
 #ifdef NS_BLOCKS_AVAILABLE
-	[UIView animateWithDuration: 0.2 
+	[UIView animateWithDuration: kAlertViewAnimDuration 
                    animations: ^{
                      self.transform = CGAffineTransformMakeScale(1.1, 1.1);
                    }
@@ -837,7 +887,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 #else
   [UIView beginAnimations:kAlertAnimPulse1 context:NULL];
   [UIView setAnimationDelegate:self];
-  [UIView setAnimationDuration:0.2];
+  [UIView setAnimationDuration:kAlertViewAnimDuration];
   [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
   self.transform = CGAffineTransformMakeScale(1.1, 1.1);
   [UIView commitAnimations];
