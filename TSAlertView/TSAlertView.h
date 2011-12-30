@@ -71,10 +71,12 @@ typedef enum
 @property(nonatomic, weak) id<TSAlertViewDelegate> delegate;
 @property(nonatomic, strong) UIImage* backgroundImage;
 @property(nonatomic, weak, readonly) UITextField* inputTextField;
+@property(nonatomic, weak, readonly) UIActivityIndicatorView* activityIndicatorView;
 #else
 @property(nonatomic, assign) id<TSAlertViewDelegate> delegate;
 @property(nonatomic, retain) UIImage* backgroundImage;
 @property(nonatomic, assign, readonly) UITextField* inputTextField;
+@property(nonatomic, assign, readonly) UIActivityIndicatorView* activityIndicatorView;
 #endif
 
 - (id)initWithTitle:(NSString *)title message:(NSString *)message delegate:(id)delegate cancelButtonTitle:(NSString *)cancelButtonTitle otherButtonTitles:(NSString *)otherButtonTitles, ...;

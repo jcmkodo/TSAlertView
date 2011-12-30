@@ -207,6 +207,7 @@ av.frame = CGRectIntegral( av.frame ); }
 @synthesize usesMessageTextView;
 @synthesize backgroundImage = _backgroundImage;
 @synthesize style;
+@synthesize activityIndicatorView=_activityIndicatorView;
 
 const CGFloat kTSAlertView_LeftMargin	= 10.0;
 const CGFloat kTSAlertView_TopMargin	= 16.0;
@@ -523,6 +524,16 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	}
 	
 	return _inputTextField;
+}
+
+- (UIActivityIndicatorView*) activityIndicatorView {
+  if (_activityIndicatorView == nil) {
+    _activityIndicatorView = [[UIActivityIndicatorView alloc] 
+                              initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
+    [_activityIndicatorView setHidesWhenStopped:YES];
+    [_activityIndicatorView startAnimating];
+  }
+  return _activityIndicatorView;
 }
 
 - (UIImage*) backgroundImage
@@ -1018,8 +1029,20 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 			y += inputTextFieldSize.height + kTSAlertView_RowMargin;
 		}
 		
+    // activity
+    if (self.style == TSAlertViewStyleActivityView) {
+      self.activityIndicatorView.center = CGPointMake(kTSAlertView_LeftMargin + inputTextFieldSize.width / 2, 
+                                                      y + inputTextFieldSize.height / 2);
+      [self addSubview:self.activityIndicatorView];
+			y += self.activityIndicatorView.frame.size.height + kTSAlertView_RowMargin;
+    }
+    
 		// buttons
-		CGFloat buttonHeight = [[self.buttons objectAtIndex:0] sizeThatFits: CGSizeZero].height;
+		CGFloat buttonHeight = (
+                            [self.buttons count] ? 
+                            [[self.buttons objectAtIndex:0] sizeThatFits: CGSizeZero].height :
+                            0
+                            );
 		if ( stacked )
 		{
 			CGFloat buttonWidth = maxWidth;
@@ -1094,8 +1117,11 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 {
 	CGFloat maxWidth = self.width - (kTSAlertView_LeftMargin * 2);
 	int buttonCount = [self.buttons count];
-	
-	CGSize bs = [[self.buttons objectAtIndex:0] sizeThatFits: CGSizeZero];
+
+	CGSize bs = CGSizeZero;
+  if ([self.buttons count]) {
+    bs = [[self.buttons objectAtIndex:0] sizeThatFits: CGSizeZero];
+  }
 	
 	bs.width = maxWidth;
 	
