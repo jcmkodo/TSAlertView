@@ -53,7 +53,7 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 - (void) drawRect: (CGRect) rect
 {
 	// render the radial gradient behind the alertview
-	
+  
 	CGFloat width			= self.frame.size.width;
 	CGFloat height			= self.frame.size.height;
 	CGFloat locations[2]	= { 0.0, 0.8 	};
@@ -989,9 +989,13 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	CGSize  buttonsAreaSize = stacked ? [self buttonsAreaSize_Stacked] : [self buttonsAreaSize_SideBySide];
 	
 	CGFloat inputRowHeight = ( 
-                            ( self.style == TSAlertViewStyleInput ) | 
-                            ( self.style == TSAlertViewStyleActivityView )
-                            ) ? inputTextFieldSize.height + kTSAlertView_RowMargin : 0;
+                            self.style == TSAlertViewStyleInput ? 
+                            inputTextFieldSize.height + kTSAlertView_RowMargin : 
+                            0
+                            );
+  if (self.style == TSAlertViewStyleActivityView) {
+    inputRowHeight += self.activityIndicatorView.frame.size.height;
+  }
 	
 	CGFloat totalHeight = kTSAlertView_TopMargin + titleLabelSize.height + kTSAlertView_RowMargin + messageViewSize.height + inputRowHeight + kTSAlertView_RowMargin + buttonsAreaSize.height + kTSAlertView_BottomMargin;
 	
@@ -1123,7 +1127,8 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 		
 	}
 	
-	return CGSizeMake( self.width, totalHeight + 10 );
+//	return CGSizeMake( self.width, totalHeight + 10 );
+	return CGSizeMake( self.width, totalHeight );
 }
 
 - (CGSize) titleLabelSize
