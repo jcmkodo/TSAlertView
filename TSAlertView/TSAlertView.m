@@ -13,6 +13,12 @@
 //#endif
 
 #if __has_feature(objc_arc)
+#define ARC_BRIDGE ARC_BRIDGE
+#else
+#define ARC_BRIDGE
+#endif
+
+#if __has_feature(objc_arc)
 #error ARC not yet supported
 #endif
 
@@ -38,7 +44,7 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 @implementation TSAlertViewGradientView
 
 - (id) initWithFrame:(CGRect)frame {
-  if (self = [super initWithFrame:frame]) {
+  if ( ( self = [super initWithFrame:frame] ) ) {
     self.backgroundColor = [UIColor clearColor];
   }
   return self;
@@ -110,7 +116,7 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 
 @end
 
-@interface TSAlertView (private)
+@interface TSAlertView ()
 @property (nonatomic, readonly) NSMutableArray* buttons;
 @property (nonatomic, readonly) UILabel* titleLabel;
 @property (nonatomic, readonly) UILabel* messageLabel;
@@ -211,6 +217,7 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 @synthesize backgroundImage = _backgroundImage;
 @synthesize style;
 @synthesize activityIndicatorView=_activityIndicatorView;
+@synthesize userInfo=_userInfo;
 
 const CGFloat kTSAlertView_LeftMargin	= 10.0;
 const CGFloat kTSAlertView_TopMargin	= 16.0;
@@ -312,6 +319,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	[_messageLabel release];
 	[_messageTextView release];
 	[_messageTextViewMaskImageView release];
+  [_userInfo release];
 	
 	//NSLog( @"TSAlertView: TSAlertOverlayWindow dealloc" );
 	
@@ -775,7 +783,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
                      }];
 #else
     [UIView beginAnimations:kAlertAnimDismiss1 
-                    context:(__bridge void*) [[NSArray alloc] initWithObjects:
+                    context:(ARC_BRIDGE void*) [[NSArray alloc] initWithObjects:
                                               alertView, 
                                               [NSNumber numberWithInteger:buttonIndex],
                                               nil]];
@@ -851,7 +859,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
     }
   }
   if ([animationID isEqual:kAlertAnimDismiss1]) {
-    [self releaseWindow:[(__bridge NSNumber*) context integerValue]];
+    [self releaseWindow:[(ARC_BRIDGE NSNumber*) context integerValue]];
   }  
 }
 
@@ -865,7 +873,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   
   if ([animationID isEqual:kAlertAnimDismiss1]) 
   {
-    NSArray *array = (__bridge NSArray*) context;
+    NSArray *array = (ARC_BRIDGE NSArray*) context;
     TSAlertView *alertView = [array objectAtIndex:0];
     
     if ( alertView.style == TSAlertViewStyleInput && [alertView.inputTextField isFirstResponder] ) {
@@ -883,7 +891,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   
   if ([animationID isEqual:kAlertAnimDismiss2]) 
   {
-    NSArray *array = (__bridge NSArray*) context;
+    NSArray *array = (ARC_BRIDGE NSArray*) context;
     TSAlertView *alertView = [array objectAtIndex:0];
     NSNumber *buttonIndex = [array objectAtIndex:1];
     
@@ -981,8 +989,8 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	CGSize  buttonsAreaSize = stacked ? [self buttonsAreaSize_Stacked] : [self buttonsAreaSize_SideBySide];
 	
 	CGFloat inputRowHeight = ( 
-                            self.style == TSAlertViewStyleInput | 
-                            self.style == TSAlertViewStyleActivityView
+                            ( self.style == TSAlertViewStyleInput ) | 
+                            ( self.style == TSAlertViewStyleActivityView )
                             ) ? inputTextFieldSize.height + kTSAlertView_RowMargin : 0;
 	
 	CGFloat totalHeight = kTSAlertView_TopMargin + titleLabelSize.height + kTSAlertView_RowMargin + messageViewSize.height + inputRowHeight + kTSAlertView_RowMargin + buttonsAreaSize.height + kTSAlertView_BottomMargin;

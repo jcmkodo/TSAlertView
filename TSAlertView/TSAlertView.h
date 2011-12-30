@@ -53,30 +53,32 @@ typedef enum
 	UITextField*			_inputTextField;
 	NSMutableArray*			_buttons;
 }
-@property(nonatomic, copy) NSString *title;
-@property(nonatomic, copy) NSString *message;
-@property(nonatomic) NSInteger cancelButtonIndex;
-@property(nonatomic, readonly) NSInteger firstOtherButtonIndex;
-@property(nonatomic, readonly) NSInteger numberOfButtons;
-@property(nonatomic, readonly, getter=isVisible) BOOL visible;
+@property (nonatomic, copy) NSString *title;
+@property (nonatomic, copy) NSString *message;
+@property (nonatomic) NSInteger cancelButtonIndex;
+@property (nonatomic, readonly) NSInteger firstOtherButtonIndex;
+@property (nonatomic, readonly) NSInteger numberOfButtons;
+@property (nonatomic, readonly, getter=isVisible) BOOL visible;
 
-@property(nonatomic, assign) TSAlertViewButtonLayout buttonLayout;
-@property(nonatomic, assign) CGFloat width;
-@property(nonatomic, assign) CGFloat maxHeight;
-@property(nonatomic, assign) BOOL usesMessageTextView;
+@property (nonatomic, assign) TSAlertViewButtonLayout buttonLayout;
+@property (nonatomic, assign) CGFloat width;
+@property (nonatomic, assign) CGFloat maxHeight;
+@property (nonatomic, assign) BOOL usesMessageTextView;
 
-@property(nonatomic, assign) TSAlertViewStyle style;
+@property (nonatomic, assign) TSAlertViewStyle style;
 
 #if __has_feature(objc_arc)
-@property(nonatomic, weak) id<TSAlertViewDelegate> delegate;
-@property(nonatomic, strong) UIImage* backgroundImage;
-@property(nonatomic, weak, readonly) UITextField* inputTextField;
-@property(nonatomic, weak, readonly) UIActivityIndicatorView* activityIndicatorView;
+@property (nonatomic, weak) id<TSAlertViewDelegate> delegate;
+@property (nonatomic, strong) UIImage* backgroundImage;
+@property (nonatomic, weak, readonly) UITextField* inputTextField;
+@property (nonatomic, weak, readonly) UIActivityIndicatorView* activityIndicatorView;
+@property (nonatomic, strong) id userInfo;
 #else
-@property(nonatomic, assign) id<TSAlertViewDelegate> delegate;
-@property(nonatomic, retain) UIImage* backgroundImage;
-@property(nonatomic, assign, readonly) UITextField* inputTextField;
-@property(nonatomic, assign, readonly) UIActivityIndicatorView* activityIndicatorView;
+@property (nonatomic, assign) id<TSAlertViewDelegate> delegate;
+@property (nonatomic, retain) UIImage* backgroundImage;
+@property (nonatomic, assign, readonly) UITextField* inputTextField;
+@property (nonatomic, assign, readonly) UIActivityIndicatorView* activityIndicatorView;
+@property (nonatomic, retain) id userInfo;
 #endif
 
 - (id)initWithTitle:(NSString *)title message:(NSString *)message delegate:(id)delegate cancelButtonTitle:(NSString *)cancelButtonTitle otherButtonTitles:(NSString *)otherButtonTitles, ...;
