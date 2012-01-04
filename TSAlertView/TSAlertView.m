@@ -66,7 +66,9 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 	CGGradientRef backgroundGradient = CGGradientCreateWithColorComponents(colorspace, components, locations, 3);
 	CGColorSpaceRelease(colorspace);
 	
-	CGContextDrawRadialGradient(UIGraphicsGetCurrentContext(), 
+  CGContextRef context = UIGraphicsGetCurrentContext();
+  
+	CGContextDrawRadialGradient(context, 
                               backgroundGradient, 
                               CGPointMake(width/2, height/2), 
                               0,
@@ -700,6 +702,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   
   // gradient view
   TSAlertViewGradientView *gradient = [[[TSAlertViewGradientView alloc] initWithFrame:rect] autorelease];
+  gradient.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:.75];
   [ow addSubview:gradient];
   
 #ifdef __IPHONE_4_0
