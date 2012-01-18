@@ -39,48 +39,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 static const NSTimeInterval kAlertBoxAnimDuration = 0.1;
 static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 
-@interface TSAlertViewGradientView : UIView
-@end
-@implementation TSAlertViewGradientView
-
-- (id) initWithFrame:(CGRect)frame {
-  if ( ( self = [super initWithFrame:frame] ) ) {
-    self.backgroundColor = [UIColor clearColor];
-  }
-  return self;
-}
-
-- (void) drawRect: (CGRect) rect
-{
-	// render the radial gradient behind the alertview
-  
-	CGFloat width			= self.frame.size.width;
-	CGFloat height			= self.frame.size.height;
-	CGFloat locations[2]	= { 0.0, 0.8 	};
-	CGFloat components[12]	= {	
-    1, 1, 1, 0.5,
-		0, 0, 0, 1.0	
-  };
-	
-	CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
-	CGGradientRef backgroundGradient = CGGradientCreateWithColorComponents(colorspace, components, locations, 3);
-	CGColorSpaceRelease(colorspace);
-	
-  CGContextRef context = UIGraphicsGetCurrentContext();
-  
-	CGContextDrawRadialGradient(context, 
-                              backgroundGradient, 
-                              CGPointMake(width/2, height/2), 
-                              0,
-                              CGPointMake(width/2, height/2), 
-                              hypotf(width, height),
-                              0);
-	
-	CGGradientRelease(backgroundGradient);
-}
-
-@end
-
 @interface TSAlertOverlayWindow : UIWindow
 #if __has_feature(objc_arc)
 @property (nonatomic,strong) UIWindow* oldKeyWindow;
@@ -92,8 +50,16 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 @implementation  TSAlertOverlayWindow
 @synthesize oldKeyWindow;
 
+- (id) initWithFrame:(CGRect)frame {
+  if ((self = [super initWithFrame:frame])) {
+    self.backgroundColor = [UIColor clearColor];
+  }
+  return self;
+}
+
 - (void) makeKeyAndVisible
 {
+  //  NSAssert([[UIApplication sharedApplication] keyWindow], @"No key window");
 	self.oldKeyWindow = [[UIApplication sharedApplication] keyWindow];
 	self.windowLevel = UIWindowLevelAlert;
 	[super makeKeyAndVisible];
@@ -103,6 +69,38 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 {
 	[super resignKeyWindow];
 	[self.oldKeyWindow makeKeyWindow];
+}
+
+- (void) drawRect: (CGRect) rect
+{
+	// render the radial gradient behind the alertview
+  
+#define kLocations (3)
+	CGFloat locations[kLocations]	= { 0.0, 0.5, 1.0 };
+	CGFloat components[12]	= {	
+    1, 1, 1, 0.5,
+		0, 0, 0, 0.5,
+		0, 0, 0, 0.7	
+  };
+  
+	CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
+	CGGradientRef backgroundGradient = CGGradientCreateWithColorComponents(colorspace, 
+                                                                         components, 
+                                                                         locations, 
+                                                                         kLocations);
+	CGColorSpaceRelease(colorspace);
+  
+  CGFloat width  = self.frame.size.width;
+	CGFloat height = self.frame.size.height;
+	CGContextDrawRadialGradient(UIGraphicsGetCurrentContext(), 
+                              backgroundGradient, 
+                              CGPointMake(width/2, height/2), 
+                              0,
+                              CGPointMake(width/2, height/2), 
+                              hypotf(width, height),
+                              0);
+  
+	CGGradientRelease(backgroundGradient);
 }
 
 #if __has_feature(objc_arc) == 0
@@ -700,11 +698,6 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	ow.alpha = 0.0;
 	ow.backgroundColor = [UIColor clearColor];
   
-  // gradient view
-  TSAlertViewGradientView *gradient = [[[TSAlertViewGradientView alloc] initWithFrame:rect] autorelease];
-  gradient.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:.75];
-  [ow addSubview:gradient];
-  
 #ifdef __IPHONE_4_0
 	ow.rootViewController = avc;
 #else
@@ -787,9 +780,9 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 #else
     [UIView beginAnimations:kAlertAnimDismiss1 
                     context:(ARC_BRIDGE void*) [[NSArray alloc] initWithObjects:
-                                              alertView, 
-                                              [NSNumber numberWithInteger:buttonIndex],
-                                              nil]];
+                                                alertView, 
+                                                [NSNumber numberWithInteger:buttonIndex],
+                                                nil]];
     [UIView setAnimationDuration:kAlertBoxAnimDuration];
     [UIView setAnimationDelegate:self];
     [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
@@ -1130,7 +1123,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 		
 	}
 	
-//	return CGSizeMake( self.width, totalHeight + 10 );
+  //	return CGSizeMake( self.width, totalHeight + 10 );
 	return CGSizeMake( self.width, totalHeight );
 }
 
