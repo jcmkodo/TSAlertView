@@ -63,12 +63,19 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 - (void) drawRect: (CGRect) rect
 {
 	// render the radial gradient behind the alertview
-  
+  /*
 #define kLocations (3)
 	CGFloat locations[kLocations]	= { 0.0, 0.5, 1.0 };
 	CGFloat components[12]	= {	
     1, 1, 1, 0.5,
 		0, 0, 0, 0.5,
+		0, 0, 0, 0.7	
+  };*/
+  
+#define kLocations (2)
+  CGFloat locations[kLocations]	= { 0.0, 1.0 	};
+	CGFloat components[] = {	
+    0, 0, 0, 0.0,
 		0, 0, 0, 0.7	
   };
   
@@ -86,7 +93,7 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
                               CGPointMake(width/2, height/2), 
                               0,
                               CGPointMake(width/2, height/2), 
-                              hypotf(width, height),
+                              hypotf(width/2, height/2),
                               0);
   
 	CGGradientRelease(backgroundGradient);
@@ -350,6 +357,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 {
 	self.backgroundColor = [UIColor clearColor];
 	self.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin; 
+  self.clipsToBounds = YES;
 	
 	// defaults:
 	style = TSAlertViewStyleNormal;
@@ -760,7 +768,6 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   
   // add and pulse the alertview
 	// add the alertview
-  alertView.alpha = 1;
 	[avc.view addSubview: alertView];
 	[alertView sizeToFit];
 	alertView.center = CGPointMake( CGRectGetMidX( avc.view.bounds ), CGRectGetMidY( avc.view.bounds ) );;
@@ -1145,14 +1152,16 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 		
 	}
 	
-  //	return CGSizeMake( self.width, totalHeight + 10 );
-	return CGSizeMake( self.width, totalHeight );
+  return CGSizeMake( self.width, totalHeight + 10 );
+	//return CGSizeMake( self.width, totalHeight );
 }
 
 - (CGSize) titleLabelSize
 {
 	CGFloat maxWidth = self.width - (kTSAlertView_LeftMargin * 2);
-	CGSize s = [self.titleLabel.text sizeWithFont: self.titleLabel.font constrainedToSize: CGSizeMake(maxWidth, 1000) lineBreakMode: self.titleLabel.lineBreakMode];
+	CGSize s = [self.titleLabel.text sizeWithFont: self.titleLabel.font 
+                              constrainedToSize: CGSizeMake(maxWidth, 1000) 
+                                  lineBreakMode: self.titleLabel.lineBreakMode];
 	if ( s.width < maxWidth )
 		s.width = maxWidth;
 	
