@@ -47,28 +47,17 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 #endif
 @end
 
-@implementation  TSAlertOverlayWindow
-@synthesize oldKeyWindow;
+#pragma mark -
+
+@interface TSAlertViewGradientView : UIView
+@end
+@implementation TSAlertViewGradientView
 
 - (id) initWithFrame:(CGRect)frame {
   if ((self = [super initWithFrame:frame])) {
     self.backgroundColor = [UIColor clearColor];
   }
   return self;
-}
-
-- (void) makeKeyAndVisible
-{
-  //  NSAssert([[UIApplication sharedApplication] keyWindow], @"No key window");
-	self.oldKeyWindow = [[UIApplication sharedApplication] keyWindow];
-	self.windowLevel = UIWindowLevelAlert;
-	[super makeKeyAndVisible];
-}
-
-- (void) resignKeyWindow
-{
-	[super resignKeyWindow];
-	[self.oldKeyWindow makeKeyWindow];
 }
 
 - (void) drawRect: (CGRect) rect
@@ -101,6 +90,35 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
                               0);
   
 	CGGradientRelease(backgroundGradient);
+}
+
+@end
+
+
+#pragma mark -
+
+@implementation  TSAlertOverlayWindow
+@synthesize oldKeyWindow;
+
+- (id) initWithFrame:(CGRect)frame {
+  if ((self = [super initWithFrame:frame])) {
+    self.backgroundColor = [UIColor clearColor];
+  }
+  return self;
+}
+
+- (void) makeKeyAndVisible
+{
+  //  NSAssert([[UIApplication sharedApplication] keyWindow], @"No key window");
+	self.oldKeyWindow = [[UIApplication sharedApplication] keyWindow];
+	self.windowLevel = UIWindowLevelAlert;
+	[super makeKeyAndVisible];
+}
+
+- (void) resignKeyWindow
+{
+	[super resignKeyWindow];
+	[self.oldKeyWindow makeKeyWindow];
 }
 
 #if __has_feature(objc_arc) == 0
@@ -697,6 +715,10 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	TSAlertOverlayWindow* ow = [[TSAlertOverlayWindow alloc] initWithFrame:rect];
 	ow.alpha = 0.0;
 	ow.backgroundColor = [UIColor clearColor];
+  
+  TSAlertViewGradientView *gradient = [[TSAlertViewGradientView alloc] initWithFrame:rect];
+  [ow addSubview:gradient];
+  [gradient release];
   
 #ifdef __IPHONE_4_0
 	ow.rootViewController = avc;
