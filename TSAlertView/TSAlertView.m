@@ -898,8 +898,8 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
     TSAlertView *alertView = [array objectAtIndex:0];
     NSNumber *buttonIndex = [array objectAtIndex:1];
     
-    [alertView releaseWindow:[buttonIndex unsignedIntegerValue]];
     [alertView.window resignKeyWindow];
+    [alertView releaseWindow:[buttonIndex unsignedIntegerValue]];
     
 #if __has_feature(objc_arc) == 0
     // array can't be autoreleased...
