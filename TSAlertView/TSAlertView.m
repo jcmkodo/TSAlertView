@@ -5,9 +5,20 @@
 //
 
 #import "TSAlertView.h"
-#import "TSAlertView+Protected.h"
 #import <QuartzCore/QuartzCore.h>
 #import <Availability.h>
+
+static NSMutableArray *__TSAlertViewStack = nil;
+
+static NSString *const kAlertAnimResize   = @"ResizeAlertView";
+static NSString *const kAlertAnimPulse1   = @"PulsePart1";
+static NSString *const kAlertAnimPulse2   = @"PulsePart2";
+static NSString *const kAlertAnimShow     = @"Show";
+static NSString *const kAlertAnimDismiss1 = @"Dismiss1";
+static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
+
+static const NSTimeInterval kAlertBoxAnimDuration = 0.1;
+static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 
 //#ifndef NS_BLOCKS_AVAILABLE
 //#error Requires Blocks!
@@ -26,19 +37,46 @@
 #ifdef NS_BLOCKS_AVAILABLE
 #undef NS_BLOCKS_AVAILABLE
 
-static NSMutableArray *__TSAlertViewStack = nil;
-
-static NSString *const kAlertAnimResize   = @"ResizeAlertView";
-static NSString *const kAlertAnimPulse1   = @"PulsePart1";
-static NSString *const kAlertAnimPulse2   = @"PulsePart2";
-static NSString *const kAlertAnimShow     = @"Show";
-static NSString *const kAlertAnimDismiss1 = @"Dismiss1";
-static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
-
 #endif
 
-static const NSTimeInterval kAlertBoxAnimDuration = 0.1;
-static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
+@interface TSAlertView ()
+@property (nonatomic, readonly) NSMutableArray* buttons;
+@property (nonatomic, readonly) UILabel* titleLabel;
+@property (nonatomic, readonly) UILabel* messageLabel;
+@property (nonatomic, readonly) UITextView* messageTextView;
+- (void) TSAlertView_commonInit;
+- (void) releaseWindow: (int) buttonIndex;
+- (void) pulse;
+- (CGSize) titleLabelSize;
+- (CGSize) messageLabelSize;
+- (CGSize) inputTextFieldSize;
+- (CGSize) buttonsAreaSize_Stacked;
+- (CGSize) buttonsAreaSize_SideBySide;
+- (CGSize) recalcSizeAndLayout: (BOOL) layout;
+//
+- (void) onKeyboardWillShow: (NSNotification*) note;
+- (void) onKeyboardWillHide: (NSNotification*) note;
+- (void) onButtonPress: (id) sender;
+#ifndef NS_BLOCKS_AVAILABLE
+- (void)animationDidStop:(NSString *)animationID 
+                finished:(NSNumber *)finished 
+                 context:(void *)context;
++ (void)animationDidStop:(NSString *)animationID 
+                finished:(NSNumber *)finished 
+                 context:(void *)context;
+#endif
+// Stack
++ (void) show:(TSAlertView*)alertView;
++ (void) hide:(TSAlertView*)alertView 
+  buttonIndex:(NSUInteger)index 
+     animated:(BOOL)animated;
++ (void) push:(TSAlertView*)alertView;
++ (void) pop:(TSAlertView*)alertView 
+ buttonIndex:(NSUInteger)index 
+    animated:(BOOL)animated;
+// More authentic animation...
++ (void) showAlert:(TSAlertView*)alert;
+@end
 
 @interface TSAlertOverlayWindow : UIWindow
 #if __has_feature(objc_arc)
@@ -647,7 +685,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 		[self.delegate alertView: self willDismissWithButtonIndex: buttonIndex ];
 	}
 	
-  [TSAlertView pop:self buttonIndex:buttonIndex animated:animated];
+  [[self class] pop:self buttonIndex:buttonIndex animated:animated];
 }
 
 - (void) releaseWindow: (int) buttonIndex
@@ -667,7 +705,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 
 - (void) show {
 	[[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode beforeDate:[NSDate date]];
-  [TSAlertView push:self];
+  [[self class] push:self];
 }
 
 + (void) show:(TSAlertView*)alertView 
