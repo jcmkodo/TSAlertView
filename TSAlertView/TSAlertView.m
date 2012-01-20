@@ -103,13 +103,13 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 {
 	// render the radial gradient behind the alertview
   /*
-#define kLocations (3)
-	CGFloat locations[kLocations]	= { 0.0, 0.5, 1.0 };
-	CGFloat components[12]	= {	
-    1, 1, 1, 0.5,
-		0, 0, 0, 0.5,
-		0, 0, 0, 0.7	
-  };*/
+   #define kLocations (3)
+   CGFloat locations[kLocations]	= { 0.0, 0.5, 1.0 };
+   CGFloat components[12]	= {	
+   1, 1, 1, 0.5,
+   0, 0, 0, 0.5,
+   0, 0, 0, 0.7	
+   };*/
   
 #define kLocations (2)
   CGFloat locations[kLocations]	= { 0.0, 1.0 	};
@@ -1022,7 +1022,16 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
     inputRowHeight += self.activityIndicatorView.frame.size.height;
   }
 	
-	CGFloat totalHeight = kTSAlertView_TopMargin + titleLabelSize.height + kTSAlertView_RowMargin + messageViewSize.height + inputRowHeight + kTSAlertView_RowMargin + buttonsAreaSize.height + kTSAlertView_BottomMargin;
+	CGFloat totalHeight = (
+                         kTSAlertView_TopMargin + 
+                         titleLabelSize.height + 
+                         kTSAlertView_RowMargin + 
+                         messageViewSize.height + 
+                         inputRowHeight + 
+                         kTSAlertView_RowMargin + 
+                         buttonsAreaSize.height + 
+                         kTSAlertView_BottomMargin
+                         );
 	
   // extra if multiple stacked buttons...
   if (stacked && [self.buttons count] > 1) {
@@ -1158,23 +1167,30 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 
 - (CGSize) titleLabelSize
 {
-	CGFloat maxWidth = self.width - (kTSAlertView_LeftMargin * 2);
-	CGSize s = [self.titleLabel.text sizeWithFont: self.titleLabel.font 
-                              constrainedToSize: CGSizeMake(maxWidth, 1000) 
-                                  lineBreakMode: self.titleLabel.lineBreakMode];
-	if ( s.width < maxWidth )
-		s.width = maxWidth;
+  CGSize s = CGSizeZero;
+  if (self.titleLabel.text) {
+    CGFloat maxWidth = self.width - (kTSAlertView_LeftMargin * 2);
+    s = [self.titleLabel.text sizeWithFont: self.titleLabel.font 
+                         constrainedToSize: CGSizeMake(maxWidth, 1000) 
+                             lineBreakMode: self.titleLabel.lineBreakMode];
+    if ( s.width < maxWidth )
+      s.width = maxWidth;
+  }
 	
 	return s;
 }
 
 - (CGSize) messageLabelSize
 {
-	CGFloat maxWidth = self.width - (kTSAlertView_LeftMargin * 2);
-	CGSize s = [self.messageLabel.text sizeWithFont: self.messageLabel.font constrainedToSize: CGSizeMake(maxWidth, 1000) lineBreakMode: self.messageLabel.lineBreakMode];
-	if ( s.width < maxWidth )
-		s.width = maxWidth;
-  
+  CGSize s = CGSizeZero;
+  if (self.messageLabel.text) {
+    CGFloat maxWidth = self.width - (kTSAlertView_LeftMargin * 2);
+    s = [self.messageLabel.text sizeWithFont: self.messageLabel.font 
+                           constrainedToSize: CGSizeMake(maxWidth, 1000) 
+                               lineBreakMode: self.messageLabel.lineBreakMode];
+    if ( s.width < maxWidth )
+      s.width = maxWidth;
+  }
 	return s;
 }
 
