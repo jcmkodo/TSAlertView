@@ -747,7 +747,10 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
                      [self showAlert:alertView];
                    }];
 #else
+  // alert will be released when the animation stops
+  [alertView retain];
   [UIView beginAnimations:kAlertAnimShow context:alertView];
+  //
   [UIView setAnimationDelegate:self];
   [UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
   [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
@@ -853,8 +856,10 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 {
   // should only be the top view...
   NSAssert([__TSAlertViewStack lastObject] == alertView, @"Should be top view");
+  id alert = [[__TSAlertViewStack lastObject] retain];
   [__TSAlertViewStack removeLastObject];
   [self hide:alertView buttonIndex:index animated:animated];  
+  [alert release];
 }
 
 #ifndef NS_BLOCKS_AVAILABLE
@@ -894,6 +899,8 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 {
   if ([animationID isEqual:kAlertAnimShow]) {
     [self showAlert:context];
+    // was retained before animation began...
+    [(id) context release];
   }
   
   if ([animationID isEqual:kAlertAnimDismiss1]) 
