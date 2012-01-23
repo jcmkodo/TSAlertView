@@ -6,6 +6,7 @@
 
 #import "TSAlertView.h"
 #import <QuartzCore/QuartzCore.h>
+#import <objc/objc-sync.h>
 #import <Availability.h>
 
 static NSMutableArray *__TSAlertViewStack = nil;
@@ -704,6 +705,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 }
 
 - (void) show {
+  objc_sync_enter([UIView class]); // lock at start...
 	[[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode beforeDate:[NSDate date]];
   [[self class] push:self];
 }
@@ -727,6 +729,14 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   TSAlertViewGradientView *gradient = [[TSAlertViewGradientView alloc] initWithFrame:rect];
   [ow addSubview:gradient];
   [gradient release];
+  
+  // add and pulse the alertview
+	// add the alertview
+  alertView.hidden = YES;
+	[avc.view addSubview: alertView];
+	[alertView sizeToFit];
+	alertView.center = CGPointMake( CGRectGetMidX( avc.view.bounds ), CGRectGetMidY( avc.view.bounds ) );;
+	alertView.frame = CGRectIntegral( alertView.frame );
   
 #ifdef __IPHONE_4_0
 	ow.rootViewController = avc;
@@ -769,12 +779,8 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   avc = [[ow subviews] objectAtIndex:0];
 #endif
   
-  // add and pulse the alertview
-	// add the alertview
-	[avc.view addSubview: alertView];
-	[alertView sizeToFit];
-	alertView.center = CGPointMake( CGRectGetMidX( avc.view.bounds ), CGRectGetMidY( avc.view.bounds ) );;
-	alertView.frame = CGRectIntegral( alertView.frame );
+  // pulse anim
+  alertView.hidden = NO;
 	[alertView pulse];
 }
 
@@ -940,7 +946,6 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
       [self show:[__TSAlertViewStack lastObject]];
     }
   }
-  
 }
 
 #endif
