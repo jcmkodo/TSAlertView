@@ -86,6 +86,7 @@ typedef enum
 - (NSString *)buttonTitleAtIndex:(NSInteger)buttonIndex;
 - (void)dismissWithClickedButtonIndex:(NSInteger)buttonIndex animated:(BOOL)animated;
 - (void)show;
+- (UIWindow*) window NS_RETURNS_RETAINED;
 
 @end
 

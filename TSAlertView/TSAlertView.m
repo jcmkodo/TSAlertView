@@ -633,6 +633,8 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   [[self class] pop:self buttonIndex:buttonIndex animated:animated];
 }
 
+- (UIWindow*) window { return [super window]; }
+
 - (void) releaseWindow: (int) buttonIndex
 {
 	if ( [self.delegate respondsToSelector: @selector(alertView:didDismissWithButtonIndex:)] )
@@ -644,7 +646,13 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	// this will propogate releases to us (TSAlertView), and our TSAlertViewController
 	
 #if __has_feature(objc_arc) == 0
+  /**
+   This silences the false positive on the window
+   ONLY compiles when analysing!
+   */
+#ifndef __clang_analyzer__
 	[self.window release];
+#endif
 #endif
 }
 
@@ -682,6 +690,14 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   CGRect rect = [UIScreen mainScreen].bounds;
   
 	TSAlertOverlayWindow* ow = [[TSAlertOverlayWindow alloc] initWithFrame:rect];
+  /**
+   This silences the false positive on the window
+   ONLY compiles when analysing!
+   */
+#ifdef __clang_analyzer__
+  [ow autorelease];
+#endif
+  
 	ow.alpha = 0.0;
 	ow.backgroundColor = [UIColor clearColor];
   
@@ -730,13 +746,13 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 }
 
 + (void) showAlert:(TSAlertView*)alertView {
-  UIViewController *avc;
-  UIWindow *ow = [[UIApplication sharedApplication] keyWindow];
-#ifdef __IPHONE_4_0
-  avc = ow.rootViewController;
-#else
-  avc = [[ow subviews] objectAtIndex:0];
-#endif
+//  UIViewController *avc;
+//  UIWindow *ow = [[UIApplication sharedApplication] keyWindow];
+//#ifdef __IPHONE_4_0
+//  avc = ow.rootViewController;
+//#else
+//  avc = [[ow subviews] objectAtIndex:0];
+//#endif
   
   // pulse anim
   alertView.hidden = NO;
