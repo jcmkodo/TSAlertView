@@ -837,12 +837,13 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
  buttonIndex:(NSUInteger)index 
     animated:(BOOL)animated
 {
-  // should only be the top view...
-  NSAssert([__TSAlertViewStack lastObject] == alertView, @"Should be top view");
-  id alert = [[__TSAlertViewStack lastObject] retain];
-  [__TSAlertViewStack removeLastObject];
-  [self hide:alertView buttonIndex:index animated:animated];  
-  [alert release];
+  // might get called when this alert isn't top of the stack...
+  if ([__TSAlertViewStack lastObject] == alertView) {
+    id alert = [[__TSAlertViewStack lastObject] retain];
+    [__TSAlertViewStack removeLastObject];
+    [self hide:alertView buttonIndex:index animated:animated];  
+    [alert release];
+  }
 }
 
 #ifndef NS_BLOCKS_AVAILABLE
