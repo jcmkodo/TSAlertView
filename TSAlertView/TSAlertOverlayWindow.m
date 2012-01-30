@@ -148,12 +148,14 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
          finalStep:(BOOL)final
           animated:(BOOL)animated
 {
+  NSArray *context = [[NSArray alloc] initWithObjects:alert, num, nil];
+  
   if (final) {
     // final step - hide the alert itself
     [alert.inputTextField resignFirstResponder];
     
     if (animated) {
-      [UIView beginAnimations:kAlertAnimDismiss2 context:alert];
+      [UIView beginAnimations:kAlertAnimDismiss2 context:context];
       [UIView setAnimationDelegate:self];
       [UIView setAnimationDuration:kAlertBackgroundAnimDuration];
       [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
@@ -167,9 +169,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     }
     
   } else {
-    // first step - fade out the window
-    NSArray *context = [[NSArray alloc] initWithObjects:alert, num, nil];
-    
+    // first step - fade out the window    
     if ( animated ) {
 #if NS_BLOCKS_AVAILABLE
       [UIView animateWithDuration:kAlertBoxAnimDuration 
@@ -250,20 +250,20 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
                 finished:(NSNumber *)finished 
                  context:(void *)context
 {
+  NSArray *animContext = (context != NULL) ? (ARC_BRIDGE NSArray*) context : nil;
+  TSAlertView *alertView = [animContext objectAtIndex:0];
+  NSNumber *index = ([animContext count] > 1) ? [animContext objectAtIndex:1] : nil;
+  
   if ([animationID isEqual:kAlertAnimDismiss1]) {
-    NSArray *array = (ARC_BRIDGE NSArray*) context;
-    TSAlertView *alertView = [array objectAtIndex:0];
-    // has button index?
-    NSNumber *index = nil;
-    if ([array count] > 1) {
-      index = [array objectAtIndex:1];
-    }
     [self hideAlert:alertView buttonIndex:index finalStep:YES animated:YES];
   }
   
   else if ([animationID isEqual:kAlertAnimDismiss2]) {
-    TSAlertView *alert = (TSAlertView*) context;
-    [alert removeFromSuperview];
+    // delegate call
+    if ([alertView.delegate respondsToSelector:@selector(alertView:didDismissWithButtonIndex:)]) {
+      [alertView.delegate alertView:alertView didDismissWithButtonIndex:[index unsignedIntegerValue]];
+    }
+    [alertView removeFromSuperview];
     [self checkStackAnimated:YES];    
   }  
   else if ([animationID isEqual:kAlertAnimShow]) { 
