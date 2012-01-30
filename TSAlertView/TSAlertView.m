@@ -636,19 +636,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 	{
 		[self.delegate alertView: self didDismissWithButtonIndex: buttonIndex ];
 	}
-	
-	// the one place we release the window we allocated in "show"
-	// this will propogate releases to us (TSAlertView), and our TSAlertViewController
-	
-#if __has_feature(objc_arc) == 0
-  /**
-   This silences the false positive on the window
-   ONLY compiles when analysing!
-   */
-#ifndef __clang_analyzer__
-	//[self.window release];
-#endif
-#endif
 }
 
 - (void) show {

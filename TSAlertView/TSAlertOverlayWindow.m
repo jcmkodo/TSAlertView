@@ -154,6 +154,10 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
           animated:(BOOL)animated
 {
   NSArray *context = [[NSArray alloc] initWithObjects:alert, num, nil];
+#ifdef __clang_analyzer__
+  // silence false positive
+  [context autorelease];
+#endif
   
   if (final) {
     // final step - hide the alert itself
