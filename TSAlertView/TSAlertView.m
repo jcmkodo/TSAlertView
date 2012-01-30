@@ -763,6 +763,9 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   buttonIndex:(NSUInteger)buttonIndex 
      animated:(BOOL)animated
 {
+  // always resign
+  [alertView.inputTextField resignFirstResponder];
+  
   if ( animated )
 	{
 #ifdef NS_BLOCKS_AVAILABLE
