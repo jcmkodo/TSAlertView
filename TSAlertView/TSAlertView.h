@@ -22,6 +22,9 @@ typedef enum
 	
 } TSAlertViewStyle;
 
+extern const NSTimeInterval kAlertBoxAnimDuration;
+extern const NSTimeInterval kAlertBackgroundAnimDuration;
+
 @class TSAlertViewController;
 @class TSAlertView;
 
@@ -81,11 +84,18 @@ typedef enum
 @property (nonatomic, retain) id userInfo;
 #endif
 
-- (id)initWithTitle:(NSString *)title message:(NSString *)message delegate:(id)delegate cancelButtonTitle:(NSString *)cancelButtonTitle otherButtonTitles:(NSString *)otherButtonTitles, ...;
-- (NSInteger)addButtonWithTitle:(NSString *)title;
-- (NSString *)buttonTitleAtIndex:(NSInteger)buttonIndex;
-- (void)dismissWithClickedButtonIndex:(NSInteger)buttonIndex animated:(BOOL)animated;
-- (void)show;
+- (id)initWithTitle:(NSString *)title 
+            message:(NSString *)message 
+           delegate:(id)delegate 
+  cancelButtonTitle:(NSString *)cancelButtonTitle 
+  otherButtonTitles:(NSString *)otherButtonTitles, ...;
+
+- (NSInteger) addButtonWithTitle:(NSString *)title;
+- (NSString *) buttonTitleAtIndex:(NSInteger)buttonIndex;
+- (void) dismissWithClickedButtonIndex:(NSInteger)buttonIndex 
+                              animated:(BOOL)animated;
+- (void) show;
+
 - (UIWindow*) window NS_RETURNS_RETAINED;
 
 @end
