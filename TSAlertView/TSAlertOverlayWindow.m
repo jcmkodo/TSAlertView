@@ -36,7 +36,8 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 @end
 
 @implementation  TSAlertOverlayWindow
-@synthesize oldKeyWindow=_oldKeyWindow, viewController=_viewController, gradient=_gradient, stack=_stack;
+@synthesize oldKeyWindow=_oldKeyWindow, viewController=_viewController;
+@synthesize gradientView=_gradientView, stack=_stack;
 
 + (TSAlertOverlayWindow*) sharedTSAlertOverlayWindow {
   if (!__sharedWindow) {
@@ -56,9 +57,8 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     
     self.backgroundColor = [UIColor clearColor];
     
-    self.gradient = [[[TSAlertViewGradientView alloc] initWithFrame:frame] autorelease];
-    self.gradient.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-    [self.viewController.view addSubview:self.gradient];
+    self.gradientView = [[[TSAlertViewGradientView alloc] initWithFrame:frame] autorelease];
+    [self.viewController.view addSubview:self.gradientView];
     
     if ([self respondsToSelector:@selector(setRootViewController:)]) {
       self.rootViewController = self.viewController;
@@ -68,6 +68,11 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   }
   
   return self;
+}
+
+- (void) layoutSubviews {
+  [super layoutSubviews];
+  self.gradientView.frame = self.viewController.view.bounds;
 }
 
 - (void) makeKeyAndVisible {
@@ -110,7 +115,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     alert.frame = CGRectIntegral( alert.frame );
     
     //
-    self.gradient.alpha = 0;
+    self.gradientView.alpha = 0;
     if (![self isKeyWindow]) {
       [self makeKeyAndVisible];
     }  
@@ -132,7 +137,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
       [UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
       [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
       [UIView setAnimationDuration:kAlertBackgroundAnimDuration];
-      self.gradient.alpha = 1;
+      self.gradientView.alpha = 1;
       [UIView commitAnimations];
 #endif	
     } else {
@@ -203,7 +208,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
       [UIView setAnimationDelegate:self];
       [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
       [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];    
-      self.gradient.alpha = 0;
+      self.gradientView.alpha = 0;
       [UIView commitAnimations];
 #endif		
     }

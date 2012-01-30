@@ -14,11 +14,11 @@
 #if __has_feature(objc_arc)
 @property (nonatomic, weak) UIWindow* oldKeyWindow;
 @property (nonatomic, weak) TSAlertViewController *viewController;
-@property (nonatomic, weak) TSAlertViewGradientView *gradient;
+@property (nonatomic, weak) UIView *gradientView;
 #else
 @property (nonatomic, assign) UIWindow* oldKeyWindow;
 @property (nonatomic, assign) TSAlertViewController *viewController;
-@property (nonatomic, assign) TSAlertViewGradientView *gradient;
+@property (nonatomic, assign) UIView *gradientView;
 #endif
 + (TSAlertOverlayWindow*) sharedTSAlertOverlayWindow;
 
