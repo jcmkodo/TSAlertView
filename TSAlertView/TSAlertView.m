@@ -25,9 +25,10 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 
 @interface TSAlertOverlayWindow : UIWindow
 #if __has_feature(objc_arc)
-@property (nonatomic,strong) UIWindow* oldKeyWindow;
+// old window must be weak, or could cause retain cycle
+@property (nonatomic, weak) UIWindow* oldKeyWindow;
 #else
-@property (nonatomic,retain) UIWindow* oldKeyWindow;
+@property (nonatomic, assign) UIWindow* oldKeyWindow;
 #endif
 @end
 
@@ -100,7 +101,6 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 
 - (void) makeKeyAndVisible
 {
-  //  NSAssert([[UIApplication sharedApplication] keyWindow], @"No key window");
 	self.oldKeyWindow = [[UIApplication sharedApplication] keyWindow];
 	self.windowLevel = UIWindowLevelAlert;
 	[super makeKeyAndVisible];
@@ -163,14 +163,6 @@ static const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
   av.center = CGPointMake( CGRectGetMidX( bounds ), CGRectGetMidY( bounds ) );
   av.frame = CGRectIntegral( av.frame ); 
 }
-
-#if __has_feature(objc_arc) == 0
-- (void) dealloc
-{
-  //	NSLog( @"TSAlertView: TSAlertViewController dealloc" );
-	[super dealloc];
-}
-#endif
 
 @end
 
@@ -725,7 +717,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   }
   
 	[ow makeKeyAndVisible];
-	
+  
 	// fade in the window  
 #ifdef NS_BLOCKS_AVAILABLE
   [UIView animateWithDuration:kAlertBackgroundAnimDuration 
@@ -737,10 +729,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
                      [self showAlert:alertView];
                    }];
 #else
-  // alert will be released when the animation stops
-  [alertView retain];
   [UIView beginAnimations:kAlertAnimShow context:alertView];
-  //
   [UIView setAnimationDelegate:self];
   [UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
   [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
@@ -807,8 +796,11 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 	}
 	else
 	{
+//    alertView.window.hidden = YES;
+    [alertView.inputTextField resignFirstResponder];
 		[alertView.window resignKeyWindow];
 		[alertView releaseWindow: buttonIndex];
+    [TSAlertView dismissDidComplete:nil];
 	}
 }
 
@@ -838,11 +830,11 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
     animated:(BOOL)animated
 {
   // might get called when this alert isn't top of the stack...
-  if ([__TSAlertViewStack lastObject] == alertView) {
-    id alert = [[__TSAlertViewStack lastObject] retain];
-    [__TSAlertViewStack removeLastObject];
+  if ([__TSAlertViewStack containsObject:alertView]) {
+//    [alertView retain];
+    [__TSAlertViewStack removeObject:alertView];
     [self hide:alertView buttonIndex:index animated:animated];  
-    [alert release];
+//    [alertView release];
   }
 }
 
@@ -893,8 +885,6 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 {
   if ([animationID isEqual:kAlertAnimShow]) {
     [self showAlert:context];
-    // was retained before animation began...
-    [(id) context release];
   }
   
   if ([animationID isEqual:kAlertAnimDismiss1]) 
