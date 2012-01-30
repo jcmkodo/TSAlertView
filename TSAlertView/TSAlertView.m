@@ -34,22 +34,13 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 @implementation TSAlertView
 
-@synthesize delegate;
-@synthesize cancelButtonIndex;
-@synthesize firstOtherButtonIndex;
-@synthesize buttonLayout;
-@synthesize width;
-@synthesize maxHeight;
-@synthesize usesMessageTextView;
-@synthesize backgroundImage = _backgroundImage;
-@synthesize style;
-@synthesize activityIndicatorView=_activityIndicatorView;
-@synthesize userInfo=_userInfo;
+@synthesize delegate=_delegate, cancelButtonIndex=_cancelButtonIndex, buttonLayout=_buttonLayout;
+@synthesize firstOtherButtonIndex=_firstOtherButtonIndex, width=_width, maxHeight=_maxHeight;
+@synthesize usesMessageTextView=_usesMessageTextView, backgroundImage=_backgroundImage;
+@synthesize style=_style, activityIndicatorView=_activityIndicatorView, userInfo=_userInfo;
 
-- (id) init 
-{
-	if ( ( self = [super init] ) )
-	{
+- (id) init {
+	if ( ( self = [super init] ) ) {
 		[self TSAlertView_commonInit];
 	}
 	return self;
@@ -63,8 +54,8 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 		
 		if ( !CGRectIsEmpty( frame ) )
 		{
-			width = frame.size.width;
-			maxHeight = frame.size.height;
+			self.width = frame.size.width;
+			self.maxHeight = frame.size.height;
 		}
 	}
 	return self;
@@ -85,7 +76,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 		
 		if ( nil != otherButtonTitles )
 		{
-			firstOtherButtonIndex = [self.buttons count];
+			_firstOtherButtonIndex = [self.buttons count];
 			[self addButtonWithTitle: otherButtonTitles ];
 			
 			va_list args;
@@ -293,7 +284,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   }
   
   return CGSizeMake( self.width, totalHeight + 10 );
-  //return CGSizeMake( self.width, totalHeight );
 }
 
 #if NS_BLOCKS_AVAILABLE == 0
@@ -314,7 +304,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     [UIView setAnimationDelegate:[TSAlertView class]];
     [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
     [UIView setAnimationDuration:1.0/7.5];
-//    [UIView setAnimationDidStopSelector:@selector(showDidComplete:)];
     self.transform = CGAffineTransformIdentity;
     [UIView commitAnimations];    
     if ( self.style == TSAlertViewStyleInput )
@@ -323,10 +312,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
       [self.inputTextField becomeFirstResponder];
     }
   }
-//  if ([animationID isEqual:kAlertAnimDismiss1]) {
-//    [self releaseWindow:[(ARC_BRIDGE NSNumber*) context integerValue]];
-//    [TSAlertView dismissDidComplete:nil];
-//  }  
 }
 #endif
 
@@ -433,55 +418,46 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   self.clipsToBounds = YES;
 	
 	// defaults:
-	style = TSAlertViewStyleNormal;
+	self.style = TSAlertViewStyleNormal;
 	self.width = 0; // set to default
 	self.maxHeight = 0; // set to default
-	buttonLayout = TSAlertViewButtonLayoutNormal;
-	cancelButtonIndex = -1;
-	firstOtherButtonIndex = -1;
+	self.buttonLayout = TSAlertViewButtonLayoutNormal;
+	self.cancelButtonIndex = -1;
+	_firstOtherButtonIndex = -1;
 }
 
-- (void) setWidth:(CGFloat) w
-{
+- (void) setWidth:(CGFloat) w {
 	if ( w <= 0 )
 		w = 284;
-	
-	width = MAX( w, self.backgroundImage.size.width );
+	_width = MAX( w, self.backgroundImage.size.width );
 }
 
-- (CGFloat) width
-{
+- (CGFloat) width {
 	if ( nil == self.superview )
-		return width;
-	
+		return self.width;
 	CGFloat maxWidth = self.superview.bounds.size.width - 20;
-	
-	return MIN( width, maxWidth );
+	return MIN( _width, maxWidth );
 }
 
-- (void) setMaxHeight:(CGFloat) h
-{
+- (void) setMaxHeight:(CGFloat) h {
 	if ( h <= 0 )
 		h = 358;
-	
-	maxHeight = MAX( h, 284 );
+	_maxHeight = MAX( h, 284 );
 }
 
-- (CGFloat) maxHeight
-{
+- (CGFloat) maxHeight {
 	if ( nil == self.superview )
-		return maxHeight;
-	
-	return MIN( maxHeight, self.superview.bounds.size.height - 20 );
+		return self.maxHeight;
+	return MIN( _maxHeight, self.superview.bounds.size.height - 20 );
 }
 
 - (void) setStyle:(TSAlertViewStyle)newStyle
 {
-	if ( style != newStyle )
+	if ( self.style != newStyle )
 	{
-		style = newStyle;
+		_style = newStyle;
 		
-		if ( style == TSAlertViewStyleInput )
+		if ( self.style == TSAlertViewStyleInput )
 		{
 			// need to watch for keyboard
 			[[NSNotificationCenter defaultCenter] addObserver: self selector: @selector( onKeyboardWillShow:) name: UIKeyboardWillShowNotification object: nil];
@@ -588,7 +564,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 	if ( buttonIndex < 0 || buttonIndex >= (NSInteger) [self.buttons count] )
 		return;
 	
-	cancelButtonIndex = buttonIndex;
+	_cancelButtonIndex = buttonIndex;
 	
   // only do this for multiple buttons...
   if ([self.buttons count] != 1) {
