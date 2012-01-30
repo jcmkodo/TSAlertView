@@ -746,14 +746,6 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 }
 
 + (void) showAlert:(TSAlertView*)alertView {
-  //  UIViewController *avc;
-  //  UIWindow *ow = [[UIApplication sharedApplication] keyWindow];
-  //#ifdef __IPHONE_4_0
-  //  avc = ow.rootViewController;
-  //#else
-  //  avc = [[ow subviews] objectAtIndex:0];
-  //#endif
-  
   // pulse anim
   alertView.hidden = NO;
 	[alertView pulse];
@@ -830,10 +822,10 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
   if (hideView) {
     // hide always non-animated
     [self hide:hideView buttonIndex:[hideView cancelButtonIndex] animated:NO];
-  } else {
-    // this is the first...
-    [self show:alertView];    
-  }
+  } 
+  
+  // show the new view
+  [self show:alertView];    
 }
 
 + (void) pop:(TSAlertView*)alertView 
@@ -934,7 +926,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
     
     // some other to show?
     if ([__TSAlertViewStack count]) {
-      [self show:[__TSAlertViewStack lastObject]];
+      [self showAlert:[__TSAlertViewStack lastObject]];
     }
   }
 }
