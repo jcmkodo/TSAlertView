@@ -679,45 +679,50 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
 
 + (void) show:(TSAlertView*)alertView 
 {
-  TSAlertViewController* avc = [[TSAlertViewController alloc] init];
+  // might already have a window
+  TSAlertOverlayWindow *ow = (TSAlertOverlayWindow*) alertView.window;
+  
+  if (!ow) {
+    TSAlertViewController* avc = [[TSAlertViewController alloc] init];
 #if __has_feature(objc_arc) == 0
-  [avc autorelease];
+    [avc autorelease];
 #endif
-  
-	avc.view.backgroundColor = [UIColor clearColor];
-	
-	// $important - the window is released only when the user clicks an alert view button
-  CGRect rect = [UIScreen mainScreen].bounds;
-  
-	TSAlertOverlayWindow* ow = [[TSAlertOverlayWindow alloc] initWithFrame:rect];
-  /**
-   This silences the false positive on the window
-   ONLY compiles when analysing!
-   */
+    
+    avc.view.backgroundColor = [UIColor clearColor];
+    
+    // $important - the window is released only when the user clicks an alert view button
+    CGRect rect = [UIScreen mainScreen].bounds;
+    
+    ow = [[TSAlertOverlayWindow alloc] initWithFrame:rect];
+    /**
+     This silences the false positive on the window
+     ONLY compiles when analysing!
+     */
 #ifdef __clang_analyzer__
-  [ow autorelease];
+    [ow autorelease];
 #endif
-  
-	ow.alpha = 0.0;
-	ow.backgroundColor = [UIColor clearColor];
-  
-  TSAlertViewGradientView *gradient = [[TSAlertViewGradientView alloc] initWithFrame:rect];
-  [ow addSubview:gradient];
-  [gradient release];
-  
-  // add and pulse the alertview
-	// add the alertview
-  alertView.hidden = YES;
-	[avc.view addSubview: alertView];
-	[alertView sizeToFit];
-	alertView.center = CGPointMake( CGRectGetMidX( avc.view.bounds ), CGRectGetMidY( avc.view.bounds ) );;
-	alertView.frame = CGRectIntegral( alertView.frame );
-  
+    
+    ow.alpha = 0.0;
+    ow.backgroundColor = [UIColor clearColor];
+    
+    TSAlertViewGradientView *gradient = [[TSAlertViewGradientView alloc] initWithFrame:rect];
+    [ow addSubview:gradient];
+    [gradient release];
+    
+    // add and pulse the alertview
+    // add the alertview
+    alertView.hidden = YES;
+    [avc.view addSubview: alertView];
+    [alertView sizeToFit];
+    alertView.center = CGPointMake( CGRectGetMidX( avc.view.bounds ), CGRectGetMidY( avc.view.bounds ) );
+    alertView.frame = CGRectIntegral( alertView.frame );
+    
 #ifdef __IPHONE_4_0
-	ow.rootViewController = avc;
+    ow.rootViewController = avc;
 #else
-  [ow addSubview:avc];
+    [ow addSubview:avc];
 #endif
+  }
   
 	[ow makeKeyAndVisible];
 	
@@ -926,7 +931,7 @@ const CGFloat kTSAlertView_ColumnMargin = 10.0;
     
     // some other to show?
     if ([__TSAlertViewStack count]) {
-      [self showAlert:[__TSAlertViewStack lastObject]];
+      [self show:[__TSAlertViewStack lastObject]];
     }
   }
 }
