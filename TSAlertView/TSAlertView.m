@@ -22,8 +22,8 @@ const NSTimeInterval kAlertBoxAnimDuration = 0.1;
 const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 
 static const CGFloat kTSAlertView_LeftMargin	= 10.0;
-static const CGFloat kTSAlertView_TopMargin	= 16.0;
-static const CGFloat kTSAlertView_BottomMargin = 15.0;
+static const CGFloat kTSAlertView_TopMargin	= 7.0;
+static const CGFloat kTSAlertView_BottomMargin = 7.0;
 static const CGFloat kTSAlertView_RowMargin	= 7.0;
 static const CGFloat kTSAlertView_ColumnMargin = 10.0;
 
@@ -147,11 +147,10 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   
   CGFloat totalHeight = (
                          kTSAlertView_TopMargin + 
-                         titleLabelSize.height + 
-                         kTSAlertView_RowMargin + 
-                         messageViewSize.height + 
-                         inputRowHeight + 
-                         kTSAlertView_RowMargin + 
+                         ( titleLabelSize.height ? titleLabelSize.height : 0 ) +
+                         kTSAlertView_RowMargin +
+                         ( messageViewSize.height ? messageViewSize.height + kTSAlertView_RowMargin : 0 ) +
+                         ( inputRowHeight ? inputRowHeight + kTSAlertView_RowMargin : 0 ) +
                          buttonsAreaSize.height + 
                          kTSAlertView_BottomMargin
                          );
@@ -222,15 +221,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
         y += messageViewSize.height + kTSAlertView_RowMargin;
       }
     }
-    
-    // input
-    if ( self.style == TSAlertViewStyleInput )
-    {
-      self.inputTextField.frame = CGRectMake( kTSAlertView_LeftMargin, y, inputTextFieldSize.width, inputTextFieldSize.height );
-      [self addSubview: self.inputTextField];
-      y += inputTextFieldSize.height + kTSAlertView_RowMargin;
-    }
-    
+        
     // activity
     if (self.style == TSAlertViewStyleActivityView) {
       self.activityIndicatorView.center = CGPointMake(kTSAlertView_LeftMargin + inputTextFieldSize.width / 2, 
@@ -245,30 +236,43 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
                             [[self.buttons objectAtIndex:0] sizeThatFits: CGSizeZero].height :
                             0
                             );
-    y += 10;
     
+    // bottom up
+    y = totalHeight - buttonHeight - kTSAlertView_BottomMargin;
+    
+    // input - immediately above buttons
+    if ( self.style == TSAlertViewStyleInput )
+    {
+      self.inputTextField.frame = CGRectMake(kTSAlertView_LeftMargin, 
+                                             y - inputTextFieldSize.height - kTSAlertView_RowMargin, 
+                                             inputTextFieldSize.width, 
+                                             inputTextFieldSize.height );
+      [self addSubview: self.inputTextField];
+    }
+        
     if ( stacked )
     {
       CGFloat buttonWidth = maxWidth;
       CGRect buttonRect = CGRectMake( kTSAlertView_LeftMargin, y, buttonWidth, buttonHeight );
       
-      for (NSUInteger i = self.cancelButtonIndex + 1; i < [self.buttons count]; ++i) {
-        UIButton *b = [self.buttons objectAtIndex:i];
-        b.frame = buttonRect;
-        [self addSubview: b];
-        y += buttonHeight + kTSAlertView_RowMargin;
-        buttonRect.origin.y = y;
-      }
-      
       // cancel button is on buttom...
       if ([self.buttons count]) {
         UIButton *b = [self.buttons objectAtIndex:self.cancelButtonIndex];
-        y += [self.buttons count] > 1 ? 2 * kTSAlertView_RowMargin : 0;
         buttonRect.origin.y = y;
         [self addSubview:b];
         b.frame = buttonRect;
+        // extra padding above cancel button
+        y -= ( buttonHeight + kTSAlertView_RowMargin + ( [self.buttons count] > 1 * kTSAlertView_RowMargin ) );
       }
       
+      // go backwards
+      for (NSInteger i = [self.buttons count]; i-- > self.cancelButtonIndex + 1; ) {    
+        UIButton *b = [self.buttons objectAtIndex:i];
+        buttonRect.origin.y = y;  
+        b.frame = buttonRect;
+        [self addSubview: b];
+        y -= buttonHeight + kTSAlertView_RowMargin;
+      }
     }
     else
     {
@@ -322,7 +326,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   if (self.titleLabel.text) {
     CGFloat maxWidth = self.width - (kTSAlertView_LeftMargin * 2);
     s = [self.titleLabel.text sizeWithFont: self.titleLabel.font 
-                         constrainedToSize: CGSizeMake(maxWidth, 1000) 
+                         constrainedToSize: CGSizeMake(maxWidth, FLT_MAX) 
                              lineBreakMode: self.titleLabel.lineBreakMode];
     if ( s.width < maxWidth )
       s.width = maxWidth;
@@ -337,7 +341,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   if (self.messageLabel.text) {
     CGFloat maxWidth = self.width - (kTSAlertView_LeftMargin * 2);
     s = [self.messageLabel.text sizeWithFont: self.messageLabel.font 
-                           constrainedToSize: CGSizeMake(maxWidth, 1000) 
+                           constrainedToSize: CGSizeMake(maxWidth, FLT_MAX) 
                                lineBreakMode: self.messageLabel.lineBreakMode];
     if ( s.width < maxWidth )
       s.width = maxWidth;
@@ -435,7 +439,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 - (CGFloat) width {
 	if ( nil == self.superview )
-		return self.width;
+		return _width;
 	CGFloat maxWidth = self.superview.bounds.size.width - 20;
 	return MIN( _width, maxWidth );
 }
@@ -443,12 +447,12 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 - (void) setMaxHeight:(CGFloat) h {
 	if ( h <= 0 )
 		h = 358;
-	_maxHeight = MAX( h, 284 );
+	_maxHeight = MIN( h, 284 );
 }
 
 - (CGFloat) maxHeight {
 	if ( nil == self.superview )
-		return self.maxHeight;
+		return _maxHeight;
 	return MIN( _maxHeight, self.superview.bounds.size.height - 20 );
 }
 
@@ -476,11 +480,12 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 	{
 		CGPoint c = self.center;
 		
-    //    const CGFloat keyboardPad = 20;
-    const CGFloat keyboardPad = 0;
+    const CGFloat keyboardPad = 10;
+//    const CGFloat keyboardPad = 0;
     
 		if ( self.frame.size.height > kbframe.origin.y - keyboardPad )
 		{
+      NSLog(@"%f", kbframe.origin.y);
 			self.maxHeight = kbframe.origin.y - keyboardPad;
 			[self sizeToFit];
 			[self layoutSubviews];
