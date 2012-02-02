@@ -8,6 +8,7 @@
 #import "TSAlertView+Protected.h"
 #import <QuartzCore/QuartzCore.h>
 #import "SynthesizeSingleton.h"
+#import "MKDUIKeyboardInfo.h"
 //
 #import "TSAlertOverlayWindow.h"
 
@@ -468,9 +469,8 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 - (void) onKeyboardWillShow: (NSNotification*) note
 {
-	NSValue* v = [note.userInfo objectForKey: UIKeyboardFrameEndUserInfoKey];
-	CGRect kbframe = [v CGRectValue];
-	kbframe = [self.superview convertRect: kbframe fromView: nil];
+  MKDUIKeyboardInfo *info = [MKDUIKeyboardInfo infoFromKeyboardNotification:note view:self.superview];
+	CGRect kbframe = info.end;
 	
 	if ( CGRectIntersectsRect( self.frame, kbframe) )
 	{
