@@ -7,6 +7,7 @@
 //
 
 #import "TSAlertViewController.h"
+#import "SynthesizeSingleton.h"
 
 static NSString *const kAlertAnimResize = @"ResizeAlertView";
 
@@ -15,6 +16,18 @@ static NSString *const kAlertAnimResize = @"ResizeAlertView";
 @end
 
 @implementation TSAlertViewController
+
+SYNTHESIZE_SINGLETON_FOR_CLASS(TSAlertViewController)
+
+- (id) initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+  if ((self = [super initWithNibName:nil bundle:nil])) {
+    self.view.backgroundColor = [UIColor clearColor];
+  }
+  return self;
+}
+
+- (id) init { return [self initWithNibName:nil bundle:nil]; }
+
 - (BOOL) shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation {
 	return YES;
 }

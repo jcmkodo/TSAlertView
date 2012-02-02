@@ -147,6 +147,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     case TSAlertViewStyleActivityView:
       accessory = self.activityIndicatorView;
       accessorySize = self.activityIndicatorView.frame.size;
+      accessorySize.height += kTSAlertView_RowMargin / 2;
       break;
     default:
       break;
@@ -230,12 +231,14 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     CGFloat buttonTop = buttonBottom - buttonsAreaSize.height;
     
     // centre accessories
-    CGRect frame = accessory.frame;
-    frame.size = accessorySize;
-    frame.origin = CGPointMake(self.width / 2 - accessorySize.width / 2, 
-                               ( buttonTop - y ) / 2 - accessorySize.height / 2 + y );
-    accessory.frame = frame;
-    [self addSubview:accessory];
+    if (accessory) {
+      CGRect frame = accessory.frame;
+      frame.origin = CGPointMake(self.width / 2 - accessorySize.width / 2, 
+                                 ( buttonTop - y ) / 2 - accessorySize.height / 2 + y );
+      frame.size = accessorySize;
+      accessory.frame = frame;
+      [self addSubview:accessory];
+    }
     
     // do buttons from bottom up
     y = buttonBottom - buttonHeight;

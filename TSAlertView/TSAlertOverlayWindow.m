@@ -12,6 +12,7 @@
 #import "TSAlertView+Protected.h"
 
 static TSAlertOverlayWindow *__sharedWindow = nil;
+//static TSAlertViewController *[TSAlertViewController sharedTSAlertViewController] = nil;
 
 static NSString *const kAlertAnimShow     = @"Show";
 static NSString *const kAlertAnimDismiss1 = @"Dismiss1";
@@ -36,8 +37,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 @end
 
 @implementation  TSAlertOverlayWindow
-@synthesize oldKeyWindow=_oldKeyWindow, viewController=_viewController;
-@synthesize gradientView=_gradientView, stack=_stack;
+@synthesize oldKeyWindow=_oldKeyWindow, gradientView=_gradientView, stack=_stack;
 
 + (TSAlertOverlayWindow*) sharedTSAlertOverlayWindow {
   if (!__sharedWindow) {
@@ -50,21 +50,14 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   // always full screen...
   CGRect frame = [UIScreen mainScreen].bounds;
   if ((self = [super initWithFrame:frame])) {
-    self.stack = [NSMutableArray array];
-    
-    self.viewController = [[[TSAlertViewController alloc] init] autorelease];
-    self.viewController.view.backgroundColor = [UIColor clearColor];
-    
+    // easy stuff...
     self.backgroundColor = [UIColor clearColor];
+    self.stack = [NSMutableArray array];    
     
     self.gradientView = [[[TSAlertViewGradientView alloc] initWithFrame:frame] autorelease];
-    [self.viewController.view addSubview:self.gradientView];
-    
-    if ([self respondsToSelector:@selector(setRootViewController:)]) {
-      self.rootViewController = self.viewController;
-    } else {  
-      [self addSubview:self.viewController.view];
-    }
+    [[TSAlertViewController sharedTSAlertViewController].view addSubview:self.gradientView];
+
+    [self addSubview:[TSAlertViewController sharedTSAlertViewController].view];
   }
   
   return self;
@@ -72,7 +65,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 - (void) layoutSubviews {
   [super layoutSubviews];
-  self.gradientView.frame = self.viewController.view.bounds;
+  self.gradientView.frame = [TSAlertViewController sharedTSAlertViewController].view.bounds;
 }
 
 - (void) makeKeyAndVisible {
@@ -91,8 +84,14 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 #if __has_feature(objc_arc) == 0
 - (void) dealloc {
+  // since there is only one instance, best to reset the pointer here:
+  __sharedWindow = nil;
 	self.stack = nil;
   self.oldKeyWindow = nil;
+  // clear the view controller
+  [[[[TSAlertViewController sharedTSAlertViewController] view] subviews] 
+   makeObjectsPerformSelector:@selector(removeFromSuperview)];
+  //
 	[super dealloc];
 }
 #endif
@@ -108,10 +107,10 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     [self hideAlert:top buttonIndex:nil finalStep:NO animated:anim];
   } else {
     alert.alpha = 0;
-    [self.viewController.view addSubview: alert];
+    [[TSAlertViewController sharedTSAlertViewController].view addSubview: alert];
     [alert sizeToFit];
-    alert.center = CGPointMake( CGRectGetMidX( self.viewController.view.bounds ), 
-                               CGRectGetMidY( self.viewController.view.bounds ) );
+    alert.center = CGPointMake( CGRectGetMidX( [TSAlertViewController sharedTSAlertViewController].view.bounds ), 
+                               CGRectGetMidY( [TSAlertViewController sharedTSAlertViewController].view.bounds ) );
     alert.frame = CGRectIntegral( alert.frame );
     
     //
@@ -121,6 +120,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     }  
     
     // fade in the window  
+    NSArray *context = [[NSArray alloc] initWithObjects:alert, nil];    
     if (anim) {
 #if NS_BLOCKS_AVAILABLE
       [UIView animateWithDuration:kAlertBackgroundAnimDuration 
@@ -132,7 +132,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
                          [self showAlert:alertView];
                        }];
 #else
-      [UIView beginAnimations:kAlertAnimShow context:NULL];
+      [UIView beginAnimations:kAlertAnimShow context:context];
       [UIView setAnimationDelegate:self];
       [UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
       [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
@@ -143,7 +143,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     } else {
       [self animationDidStop:kAlertAnimShow 
                     finished:[NSNumber numberWithBool:YES] 
-                     context:NULL];
+                     context:context];
     }
   }
 }
@@ -164,7 +164,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     [alert.inputTextField resignFirstResponder];
     
     if (animated) {
-      [UIView beginAnimations:kAlertAnimDismiss2 context:context];
+      [UIView beginAnimations:kAlertAnimDismiss2 context:(ARC_BRIDGE void*) context];
       [UIView setAnimationDelegate:self];
       [UIView setAnimationDuration:kAlertBackgroundAnimDuration];
       [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
@@ -243,14 +243,13 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     TSAlertView *alert = [self.stack lastObject];
     // may need to be added, or pulsed
     if (alert.superview) {
-      [alert pulse];
     } else {
       [self push:alert animated:anim];
     }
   } else {
     // nothing on stack
-    [self release];
     [self resignKeyWindow];
+    [self release];
     __sharedWindow = nil;
   }
 }
@@ -276,8 +275,12 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     [self checkStackAnimated:YES];    
   }  
   else if ([animationID isEqual:kAlertAnimShow]) { 
+    [alertView pulse];
     [self checkStackAnimated:YES];
   }
+  
+  // always need to release the context array here:
+  [animContext release];
 }
 
 
