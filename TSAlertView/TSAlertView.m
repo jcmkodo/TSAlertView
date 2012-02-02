@@ -139,15 +139,17 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   // accessories
   UIView *accessory = nil;
   CGSize accessorySize = CGSizeZero;
+  CGFloat accessoryHeight = 0;
   switch (self.style) {
     case TSAlertViewStyleInput:
       accessory = self.inputTextField;
       accessorySize = inputTextFieldSize;
+      accessoryHeight = accessorySize.height;
       break;
     case TSAlertViewStyleActivityView:
       accessory = self.activityIndicatorView;
       accessorySize = self.activityIndicatorView.frame.size;
-      accessorySize.height += kTSAlertView_RowMargin / 2;
+      accessoryHeight = accessorySize.height + kTSAlertView_RowMargin / 2;
       break;
     default:
       break;
@@ -158,7 +160,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
                          ( titleLabelSize.height ? titleLabelSize.height : 0 ) +      // title
                          kTSAlertView_RowMargin +   // always a row margin below title
                          ( messageViewSize.height ? messageViewSize.height + kTSAlertView_RowMargin : 0 ) +
-                         ( accessorySize.height ? accessorySize.height + kTSAlertView_RowMargin : 0 ) + // input
+                         ( accessorySize.height ? accessoryHeight + kTSAlertView_RowMargin : 0 ) + // input
                          buttonsAreaSize.height + 
                          kTSAlertView_BottomMargin
                          );
@@ -234,7 +236,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     if (accessory) {
       CGRect frame = accessory.frame;
       frame.origin = CGPointMake(self.width / 2 - accessorySize.width / 2, 
-                                 ( buttonTop - y ) / 2 - accessorySize.height / 2 + y );
+                                 ( buttonTop - y ) / 2 - accessoryHeight / 2 + y );
       frame.size = accessorySize;
       accessory.frame = frame;
       [self addSubview:accessory];
