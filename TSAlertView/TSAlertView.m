@@ -221,15 +221,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
         y += messageViewSize.height + kTSAlertView_RowMargin;
       }
     }
-        
-    // activity
-    if (self.style == TSAlertViewStyleActivityView) {
-      self.activityIndicatorView.center = CGPointMake(kTSAlertView_LeftMargin + inputTextFieldSize.width / 2, 
-                                                      y + inputTextFieldSize.height / 2);
-      [self addSubview:self.activityIndicatorView];
-      y += self.activityIndicatorView.frame.size.height + kTSAlertView_RowMargin;
-    }
-    
+            
     // buttons
     CGFloat buttonHeight = (
                             [self.buttons count] ? 
@@ -238,7 +230,20 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
                             );
     
     // bottom up
-    y = totalHeight - buttonHeight - kTSAlertView_BottomMargin;
+    CGFloat buttonBottom = totalHeight - kTSAlertView_BottomMargin;
+    //CGFloat buttonTop = buttonBottom - buttonsAreaSize.height;
+    
+    // activity
+    if (self.style == TSAlertViewStyleActivityView) {
+      // centre in space above buttons
+      self.activityIndicatorView.center = CGPointMake(kTSAlertView_LeftMargin + inputTextFieldSize.width / 2, 
+                                                      y + ( buttonBottom - y ) / 2 );
+      [self addSubview:self.activityIndicatorView];
+      y += self.activityIndicatorView.frame.size.height + kTSAlertView_RowMargin;
+    }
+
+    // do buttons from bottom up
+    y = buttonBottom - buttonHeight;
     
     // input - immediately above buttons
     if ( self.style == TSAlertViewStyleInput )
@@ -384,7 +389,11 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   
   bs.width = maxWidth;
   
-  bs.height = (bs.height * buttonCount) + (kTSAlertView_RowMargin * (buttonCount-1));
+  bs.height = (
+               (bs.height * buttonCount) + 
+               (kTSAlertView_RowMargin * (buttonCount - 1)) +
+               [self.buttons count] > 1 * kTSAlertView_RowMargin  // extra padding about cancel
+               );
   
   return bs;
 }
