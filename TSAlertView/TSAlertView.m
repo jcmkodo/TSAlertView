@@ -21,11 +21,11 @@
 const NSTimeInterval kAlertBoxAnimDuration = 0.1;
 const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 
-static const CGFloat kTSAlertView_LeftMargin	= 10.0;
-static const CGFloat kTSAlertView_TopMargin	= 7.0;
-static const CGFloat kTSAlertView_BottomMargin = 7.0;
-static const CGFloat kTSAlertView_RowMargin	= 7.0;
-static const CGFloat kTSAlertView_ColumnMargin = 10.0;
+CGFloat kTSAlertView_LeftMargin	= 10.0;
+CGFloat kTSAlertView_TopMargin	= 7.0;
+CGFloat kTSAlertView_BottomMargin = 7.0;
+CGFloat kTSAlertView_RowMargin	= 7.0;
+CGFloat kTSAlertView_ColumnMargin = 10.0;
 
 static NSString *const kAlertAnimPulse1   = @"PulsePart1";
 static NSString *const kAlertAnimPulse2   = @"PulsePart2";

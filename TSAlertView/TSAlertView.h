@@ -25,6 +25,12 @@ typedef enum
 extern const NSTimeInterval kAlertBoxAnimDuration;
 extern const NSTimeInterval kAlertBackgroundAnimDuration;
 
+extern CGFloat kTSAlertView_LeftMargin;
+extern CGFloat kTSAlertView_TopMargin;
+extern CGFloat kTSAlertView_BottomMargin;
+extern CGFloat kTSAlertView_RowMargin;
+extern CGFloat kTSAlertView_ColumnMargin;
+
 @class TSAlertViewController;
 @class TSAlertView;
 
