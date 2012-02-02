@@ -136,35 +136,31 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   CGSize  inputTextFieldSize = [self inputTextFieldSize];
   CGSize  buttonsAreaSize = stacked ? [self buttonsAreaSize_Stacked] : [self buttonsAreaSize_SideBySide];
   
-  CGFloat inputRowHeight = ( 
-                            self.style == TSAlertViewStyleInput ? 
-                            inputTextFieldSize.height + kTSAlertView_RowMargin : 
-                            0
-                            );
-  if (self.style == TSAlertViewStyleActivityView) {
-    inputRowHeight += self.activityIndicatorView.frame.size.height;
+  // accessories
+  UIView *accessory = nil;
+  CGSize accessorySize = CGSizeZero;
+  switch (self.style) {
+    case TSAlertViewStyleInput:
+      accessory = self.inputTextField;
+      accessorySize = inputTextFieldSize;
+      break;
+    case TSAlertViewStyleActivityView:
+      accessory = self.activityIndicatorView;
+      accessorySize = self.activityIndicatorView.frame.size;
+      break;
+    default:
+      break;
   }
   
   CGFloat totalHeight = (
                          kTSAlertView_TopMargin + 
-                         ( titleLabelSize.height ? titleLabelSize.height : 0 ) +
-                         kTSAlertView_RowMargin +
+                         ( titleLabelSize.height ? titleLabelSize.height : 0 ) +      // title
+                         kTSAlertView_RowMargin +   // always a row margin below title
                          ( messageViewSize.height ? messageViewSize.height + kTSAlertView_RowMargin : 0 ) +
-                         ( inputRowHeight ? inputRowHeight + kTSAlertView_RowMargin : 0 ) +
+                         ( accessorySize.height ? accessorySize.height + kTSAlertView_RowMargin : 0 ) + // input
                          buttonsAreaSize.height + 
                          kTSAlertView_BottomMargin
                          );
-  
-  // extra if multiple stacked buttons...
-  if (stacked && [self.buttons count] > 1) {
-    totalHeight += 2 * kTSAlertView_RowMargin;
-  }
-  
-  // when no buttons, leaves more space
-  if (![self.buttons count]) {
-    CGSize s = [self.inputTextField sizeThatFits: CGSizeZero];
-    totalHeight += s.height + kTSAlertView_TopMargin;
-  }
   
   if ( totalHeight > self.maxHeight )
   {
@@ -221,7 +217,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
         y += messageViewSize.height + kTSAlertView_RowMargin;
       }
     }
-            
+    
     // buttons
     CGFloat buttonHeight = (
                             [self.buttons count] ? 
@@ -231,30 +227,19 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     
     // bottom up
     CGFloat buttonBottom = totalHeight - kTSAlertView_BottomMargin;
-    //CGFloat buttonTop = buttonBottom - buttonsAreaSize.height;
+    CGFloat buttonTop = buttonBottom - buttonsAreaSize.height;
     
-    // activity
-    if (self.style == TSAlertViewStyleActivityView) {
-      // centre in space above buttons
-      self.activityIndicatorView.center = CGPointMake(kTSAlertView_LeftMargin + inputTextFieldSize.width / 2, 
-                                                      y + ( buttonBottom - y ) / 2 );
-      [self addSubview:self.activityIndicatorView];
-      y += self.activityIndicatorView.frame.size.height + kTSAlertView_RowMargin;
-    }
-
+    // centre accessories
+    CGRect frame = accessory.frame;
+    frame.size = accessorySize;
+    frame.origin = CGPointMake(self.width / 2 - accessorySize.width / 2, 
+                               ( buttonTop - y ) / 2 - accessorySize.height / 2 + y );
+    accessory.frame = frame;
+    [self addSubview:accessory];
+    
     // do buttons from bottom up
     y = buttonBottom - buttonHeight;
     
-    // input - immediately above buttons
-    if ( self.style == TSAlertViewStyleInput )
-    {
-      self.inputTextField.frame = CGRectMake(kTSAlertView_LeftMargin, 
-                                             y - inputTextFieldSize.height - kTSAlertView_RowMargin, 
-                                             inputTextFieldSize.width, 
-                                             inputTextFieldSize.height );
-      [self addSubview: self.inputTextField];
-    }
-        
     if ( stacked )
     {
       CGFloat buttonWidth = maxWidth;
@@ -391,8 +376,8 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   
   bs.height = (
                (bs.height * buttonCount) + 
-               (kTSAlertView_RowMargin * (buttonCount - 1)) +
-               [self.buttons count] > 1 * kTSAlertView_RowMargin  // extra padding about cancel
+               (kTSAlertView_RowMargin * MAX(0, buttonCount - 1)) +
+               ( ( [self.buttons count] > 1 ) * kTSAlertView_RowMargin)  // extra padding about cancel
                );
   
   return bs;
@@ -490,7 +475,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 		CGPoint c = self.center;
 		
     const CGFloat keyboardPad = 10;
-//    const CGFloat keyboardPad = 0;
+    //    const CGFloat keyboardPad = 0;
     
 		if ( self.frame.size.height > kbframe.origin.y - keyboardPad )
 		{
@@ -794,9 +779,9 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
                      [UIView commitAnimations];
 #endif  
                    }
-
-@end
-
-
-
-
+   
+   @end
+   
+   
+   
+   
