@@ -81,6 +81,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   // since there is only one instance, best to reset the pointer here:
   __sharedWindow = nil;
 	self.stack = nil;
+  [self.oldKeyWindow makeKeyWindow];
   self.oldKeyWindow = nil;
   // clear the view controller
   [[[[TSAlertViewController sharedTSAlertViewController] view] subviews] 
@@ -243,8 +244,8 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   } else {
     // nothing on stack - get rid of the window
     [self.oldKeyWindow makeKeyWindow];
-    [__sharedWindow release];
-    __sharedWindow = nil;
+//    [__sharedWindow release];
+//    __sharedWindow = nil;
   }
 }
 
