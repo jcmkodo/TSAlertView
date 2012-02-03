@@ -74,12 +74,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 	[super makeKeyAndVisible];
 }
 
-- (void) resignKeyWindow {
-	[super resignKeyWindow];
-	[self.oldKeyWindow makeKeyWindow];
-  self.oldKeyWindow = nil;
-}
-
 - (id) initWithFrame:(CGRect)frame { return [self init]; }
 
 #if __has_feature(objc_arc) == 0
@@ -247,11 +241,15 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
       [self push:alert animated:anim];
     }
   } else {
-    // nothing on stack
-    [self resignKeyWindow];
-    [self release];
+    // nothing on stack - get rid of the window
+    [self.oldKeyWindow makeKeyWindow];
+    [__sharedWindow release];
     __sharedWindow = nil;
   }
+}
+
+- (id) retain {
+  return [super retain];
 }
 
 - (void)animationDidStop:(NSString *)animationID 
