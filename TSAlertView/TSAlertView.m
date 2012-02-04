@@ -57,6 +57,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 		{
 			self.width = frame.size.width;
 			self.maxHeight = frame.size.height;
+      self.layer.shouldRasterize = YES;
 		}
 	}
 	return self;
