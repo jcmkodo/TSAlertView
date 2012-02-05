@@ -11,6 +11,7 @@
 #import "MKDUIKeyboardInfo.h"
 //
 #import "TSAlertOverlayWindow.h"
+#import "TSAlertViewController.h"
 
 //#if NS_BLOCKS_AVAILABLE
 //#undef NS_BLOCKS_AVAILABLE
@@ -628,9 +629,9 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 		[self.delegate alertView: self willDismissWithButtonIndex: buttonIndex ];
 	}
 	
-  [[TSAlertOverlayWindow sharedTSAlertOverlayWindow] pop:self 
-                                             buttonIndex:buttonIndex 
-                                                animated:animated];
+  [[TSAlertViewController sharedTSAlertViewController] pop:self 
+                                               buttonIndex:buttonIndex 
+                                                  animated:animated];
 }
 
 - (UIWindow*) window { return [super window]; }
@@ -644,7 +645,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 }
 
 - (void) show {
-  [[TSAlertOverlayWindow sharedTSAlertOverlayWindow] push:self animated:YES];
+  [[TSAlertViewController sharedTSAlertViewController] push:self animated:YES];
 }
 
 #pragma mark -

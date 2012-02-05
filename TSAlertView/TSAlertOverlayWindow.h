@@ -18,11 +18,7 @@
 @property (nonatomic, assign) UIWindow* oldKeyWindow;
 @property (nonatomic, assign) UIView *gradientView;
 #endif
-+ (TSAlertOverlayWindow*) sharedTSAlertOverlayWindow;
 
-- (void) push:(TSAlertView*) alert animated:(BOOL)anim;
-- (void) pop:(TSAlertView*) alert 
- buttonIndex:(NSUInteger) index 
-    animated:(BOOL) anim;
++ (TSAlertOverlayWindow*) sharedTSAlertOverlayWindow;
 
 @end
