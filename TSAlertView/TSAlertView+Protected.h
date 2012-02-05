@@ -36,7 +36,7 @@
 - (CGSize) recalcSizeAndLayout: (BOOL) layout;
 - (UIImageView*) messageTextViewMaskView;
 //
-- (void) onKeyboardWillShow: (NSNotification*) note;
+- (void) onKeyboardDidShow: (NSNotification*) note;
 - (void) onKeyboardWillHide: (NSNotification*) note;
 - (void) onButtonPress: (id) sender;
 - (void) pulse;

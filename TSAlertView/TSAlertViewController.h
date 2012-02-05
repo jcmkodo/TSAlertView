@@ -9,7 +9,6 @@
 #import <UIKit/UIKit.h>
 
 @interface TSAlertViewController : UIViewController
-+ (TSAlertViewController*) sharedTSAlertViewController;
 
 - (void) push:(TSAlertView*) alert 
      animated:(BOOL)anim;

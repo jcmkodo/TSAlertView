@@ -11,13 +11,12 @@
 #import "TSAlertView+Protected.h"
 #import "SynthesizeSingleton.h"
 
+#import "UIApplication+MKDAdditions.h"
+
 static NSString *const kAlertAnimResize   = @"ResizeAlertView";
 static NSString *const kAlertAnimShow     = @"Show";
 static NSString *const kAlertAnimDismiss1 = @"Dismiss1";
 static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
-
-@interface TSAlertViewGradientView : UIView
-@end
 
 @interface TSAlertViewController ()
 #if __has_feature(objc_arc)
@@ -35,24 +34,16 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
                 finished:(NSNumber *)finished 
                  context:(void *)context;
 #endif
-- (void)doRotationAnimsOnAlertView:(TSAlertView*)av;
+//- (void)doRotationAnimsOnAlertView:(TSAlertView*)av;
 @end
 
 @implementation TSAlertViewController
 @synthesize stack=_stack;
 
-SYNTHESIZE_SINGLETON_FOR_CLASS(TSAlertViewController)
-
 - (id) initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
   if ((self = [super initWithNibName:nil bundle:nil])) {
     self.view.backgroundColor = [UIColor clearColor];
-    self.stack = [NSMutableArray array];    
-    
-    UIView *gradient = [[[TSAlertViewGradientView alloc] initWithFrame:self.view.bounds] autorelease];
-    [self.view addSubview:gradient];
-    
-    // add to the window
-    [[TSAlertOverlayWindow sharedTSAlertOverlayWindow] addSubview:self.view];
+    self.stack = [NSMutableArray array];        
   }
   return self;
 }
@@ -60,15 +51,24 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(TSAlertViewController)
 - (id) init { return [self initWithNibName:nil bundle:nil]; }
 
 - (void)dealloc {
+//  NSLog(@"View controller dealloc");
   self.stack = nil;
   [super dealloc];
 }
 
 - (BOOL) shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation {
-	return YES;
+  // need to check with the original window... can only do this on ios 4+
+  UIWindow *window = [(TSAlertOverlayWindow*) self.view.window oldKeyWindow];
+  if ([window respondsToSelector:@selector(rootViewController)]) {
+    UIViewController *vc = window.rootViewController;
+    return [vc shouldAutorotateToInterfaceOrientation:toInterfaceOrientation];
+  }
+  // rely on app supported orientations...
+  return [[UIApplication sharedApplication] supportsOrientation:toInterfaceOrientation];
 }
-
-- (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation duration:(NSTimeInterval)duration
+/*
+- (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation 
+                                         duration:(NSTimeInterval)duration
 {
 	TSAlertView* av = [self.view.subviews lastObject];
 	if (!av || ![av isKindOfClass:[TSAlertView class]])
@@ -93,7 +93,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(TSAlertViewController)
   CGRect bounds = av.superview.bounds;
   av.center = CGPointMake( CGRectGetMidX( bounds ), CGRectGetMidY( bounds ) );
   av.frame = CGRectIntegral( av.frame ); 
-}
+}*/
 
 #pragma mark -
 
@@ -107,23 +107,16 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(TSAlertViewController)
     // hide first
     [self hideAlert:top buttonIndex:nil finalStep:NO animated:anim];
   } else {
-    alert.alpha = 0;
-    UIView *view = [TSAlertViewController sharedTSAlertViewController].view;
-    [view addSubview: alert];
-    [alert sizeToFit];
-    alert.center = CGPointMake( CGRectGetMidX( [TSAlertViewController sharedTSAlertViewController].view.bounds ), 
-                               CGRectGetMidY( [TSAlertViewController sharedTSAlertViewController].view.bounds ) );
-    alert.frame = CGRectIntegral( alert.frame );
-    
     //
-    TSAlertOverlayWindow *window = (TSAlertOverlayWindow*) view.window;
-    NSAssert(window, @"No window");
-    
-    window.gradientView.alpha = 0;
-    if (![window isKeyWindow]) {
-      [window makeKeyAndVisible];
-    }  
-    
+    TSAlertOverlayWindow *window = [TSAlertOverlayWindow sharedTSAlertOverlayWindow];
+
+    alert.alpha = 0;
+    [window.rootViewController.view addSubview: alert];
+    [alert sizeToFit];
+    alert.center = CGPointMake( CGRectGetMidX( window.rootViewController.view.bounds ), 
+                               CGRectGetMidY( window.rootViewController.view.bounds ) );
+    alert.frame = CGRectIntegral( alert.frame );
+        
     // fade in the window  
     NSArray *context = [[NSArray alloc] initWithObjects:alert, nil];    
     if (anim) {
@@ -158,9 +151,6 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(TSAlertViewController)
          finalStep:(BOOL)final
           animated:(BOOL)animated
 {
-  TSAlertOverlayWindow *window = (TSAlertOverlayWindow*) alert.window;
-  NSAssert(window, @"No window");
-  
   NSArray *context = [[NSArray alloc] initWithObjects:alert, num, nil];
 #ifdef __clang_analyzer__
   // silence false positive
@@ -220,7 +210,7 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(TSAlertViewController)
       [UIView setAnimationDelegate:self];
       [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
       [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];    
-      window.gradientView.alpha = 0;
+      [TSAlertOverlayWindow sharedTSAlertOverlayWindow].gradientView.alpha = 0;
       [UIView commitAnimations];
 #endif		
     }
@@ -256,12 +246,10 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(TSAlertViewController)
     }
   } else {
     // nothing on stack - get rid of the window
-    TSAlertOverlayWindow *window = (TSAlertOverlayWindow*) self.view.window;
+    TSAlertOverlayWindow *window = [TSAlertOverlayWindow sharedTSAlertOverlayWindow];
     NSAssert(window, @"No window");
     [window.oldKeyWindow makeKeyWindow];
     [window release];
-    //    [__sharedWindow release];
-    //    __sharedWindow = nil;
   }
 }
 
@@ -292,59 +280,6 @@ SYNTHESIZE_SINGLETON_FOR_CLASS(TSAlertViewController)
   
   // always need to release the context array here:
   [animContext release];
-}
-
-@end
-
-#pragma mark -
-
-@implementation TSAlertViewGradientView
-
-- (id) initWithFrame:(CGRect)frame {
-  if ((self = [super initWithFrame:frame])) {
-    self.backgroundColor = [UIColor clearColor];
-    self.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-  }
-  return self;
-}
-
-- (void) drawRect: (CGRect) rect
-{
-	// render the radial gradient behind the alertview
-  /*
-   #define kLocations (3)
-   CGFloat locations[kLocations]	= { 0.0, 0.5, 1.0 };
-   CGFloat components[12]	= {	
-   1, 1, 1, 0.5,
-   0, 0, 0, 0.5,
-   0, 0, 0, 0.7	
-   };*/
-  
-#define kLocations (2)
-  CGFloat locations[kLocations]	= { 0.0, 1.0 	};
-	CGFloat components[] = {	
-    0, 0, 0, 0.0,
-		0, 0, 0, 0.7	
-  };
-  
-	CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
-	CGGradientRef backgroundGradient = CGGradientCreateWithColorComponents(colorspace, 
-                                                                         components, 
-                                                                         locations, 
-                                                                         kLocations);
-	CGColorSpaceRelease(colorspace);
-  
-  CGFloat width  = self.frame.size.width;
-	CGFloat height = self.frame.size.height;
-	CGContextDrawRadialGradient(UIGraphicsGetCurrentContext(), 
-                              backgroundGradient, 
-                              CGPointMake(width/2, height/2), 
-                              0,
-                              CGPointMake(width/2, height/2), 
-                              hypotf(width/2, height/2),
-                              0);
-  
-	CGGradientRelease(backgroundGradient);
 }
 
 @end

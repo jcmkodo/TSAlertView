@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+#define ALERT_CONTROLLER (TSAlertViewController*) [[TSAlertOverlayWindow sharedTSAlertOverlayWindow] rootViewController]
+
 @class TSAlertViewController, TSAlertViewGradientView;
 
 @interface TSAlertOverlayWindow : UIWindow
@@ -20,5 +22,7 @@
 #endif
 
 + (TSAlertOverlayWindow*) sharedTSAlertOverlayWindow;
+/** Pre iOS4 compatibility... */
+- (UIViewController*) rootViewController;
 
 @end

@@ -466,49 +466,56 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 		if ( self.style == TSAlertViewStyleInput )
 		{
 			// need to watch for keyboard
-			[[NSNotificationCenter defaultCenter] addObserver: self selector: @selector( onKeyboardWillShow:) name: UIKeyboardWillShowNotification object: nil];
+			[[NSNotificationCenter defaultCenter] addObserver: self selector: @selector( onKeyboardDidShow:) name: UIKeyboardDidShowNotification object: nil];
 			[[NSNotificationCenter defaultCenter] addObserver: self selector: @selector( onKeyboardWillHide:) name: UIKeyboardWillHideNotification object: nil];
 		}
 	}
 }
 
-- (void) onKeyboardWillShow: (NSNotification*) note
-{
-  MKDUIKeyboardInfo *info = [MKDUIKeyboardInfo infoFromKeyboardNotification:note view:self.superview];
-	CGRect kbframe = info.end;
-	
-	if ( CGRectIntersectsRect( self.frame, kbframe) )
-	{
-		CGPoint c = self.center;
-		
-    const CGFloat keyboardPad = 10;
-    //    const CGFloat keyboardPad = 0;
+- (void) onKeyboardDidShow: (NSNotification*) note {
+  // convert keyboard rect to window coordinates
+  CGRect deviceRect = [[[note userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
+  
+  // convert keyboard (screen) rect to our window...
+  CGRect keyRect = [self.window convertRect:deviceRect fromWindow:nil];
+
+  CGFloat spaceHeight;
+  if (self.window.frame.size.height == keyRect.size.height) {
+    // landscape...
+    spaceHeight = self.window.frame.size.width - keyRect.size.width;
+  } else {
+    // portrait
+    spaceHeight = self.window.frame.size.height - keyRect.size.height;
+  }
+  
+  const CGFloat keyboardPad = 10;
+  //    const CGFloat keyboardPad = 0;
+  
+  if ( self.frame.size.height > spaceHeight - keyboardPad )
+  {
+    self.maxHeight = spaceHeight - keyboardPad;
+    [self sizeToFit];
+    [self layoutSubviews];
+  }
     
-		if ( self.frame.size.height > kbframe.origin.y - keyboardPad )
-		{
-      NSLog(@"%f", kbframe.origin.y);
-			self.maxHeight = kbframe.origin.y - keyboardPad;
-			[self sizeToFit];
-			[self layoutSubviews];
-		}
-		
-		c.y = kbframe.origin.y / 2;
-		
+  // centre vertically in the space
+  CGPoint c = self.center;
+  c.y = spaceHeight / 2;
+  
 #if NS_BLOCKS_AVAILABLE
-		[UIView animateWithDuration: kAlertBoxAnimDuration 
-                     animations: ^{
-                       self.center = c;
-                       self.frame = CGRectIntegral(self.frame);
-                     }];
+  [UIView animateWithDuration: kAlertBoxAnimDuration 
+                   animations: ^{
+                     self.center = c;
+                     self.frame = CGRectIntegral(self.frame);
+                   }];
 #else
-    [UIView beginAnimations:nil context:NULL];
-    [UIView setAnimationDuration:kAlertBoxAnimDuration];
-    [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
-    self.center = c;
-    self.frame = CGRectIntegral(self.frame);
-    [UIView commitAnimations];    
+  [UIView beginAnimations:nil context:NULL];
+  [UIView setAnimationDuration:kAlertBoxAnimDuration];
+  [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+  self.center = c;
+  self.frame = CGRectIntegral(self.frame);
+  [UIView commitAnimations];    
 #endif
-	}
 }
 
 - (void) onKeyboardWillHide: (NSNotification*) note
@@ -629,9 +636,9 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 		[self.delegate alertView: self willDismissWithButtonIndex: buttonIndex ];
 	}
 	
-  [[TSAlertViewController sharedTSAlertViewController] pop:self 
-                                               buttonIndex:buttonIndex 
-                                                  animated:animated];
+  [ALERT_CONTROLLER pop:self 
+            buttonIndex:buttonIndex 
+               animated:animated];
 }
 
 - (UIWindow*) window { return [super window]; }
@@ -645,7 +652,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 }
 
 - (void) show {
-  [[TSAlertViewController sharedTSAlertViewController] push:self animated:YES];
+  [ALERT_CONTROLLER push:self animated:YES];
 }
 
 #pragma mark -

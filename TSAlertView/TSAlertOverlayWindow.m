@@ -12,11 +12,20 @@
 
 static TSAlertOverlayWindow *__sharedWindow = nil;
   
-@interface TSAlertOverlayWindow ()
+@interface TSAlertViewGradientView : UIView
 @end
 
-@implementation  TSAlertOverlayWindow
+@interface TSAlertOverlayWindow ()
+#if __has_feature(objc_arc)
+@property (nonatomic, weak) UIViewController* alertViewController;
+#else
+@property (nonatomic, assign) UIViewController* alertViewController;
+#endif
+@end
+
+@implementation TSAlertOverlayWindow
 @synthesize oldKeyWindow=_oldKeyWindow, gradientView=_gradientView;
+@synthesize alertViewController=_alertViewController;
 
 + (TSAlertOverlayWindow*) sharedTSAlertOverlayWindow {
   NSAssert([NSThread isMainThread], @"Not main thread");
@@ -26,19 +35,39 @@ static TSAlertOverlayWindow *__sharedWindow = nil;
   return __sharedWindow;
 }
 
-- (id) init {
-  // always full screen...
-  CGRect frame = [UIScreen mainScreen].bounds;
-  if ((self = [super initWithFrame:frame])) {
-    // easy stuff...
-    self.backgroundColor = [UIColor clearColor];
-  }  
-  return self;
+- (UIViewController*) rootViewController {
+  if ([super respondsToSelector:@selector(rootViewController)]) {
+    return [super rootViewController];
+  }
+  return self.alertViewController;
 }
 
-- (void) layoutSubviews {
-  [super layoutSubviews];
-  self.gradientView.frame = [TSAlertViewController sharedTSAlertViewController].view.bounds;
+- (id) init {
+  // always full screen...
+  if ((self = [super initWithFrame:[UIScreen mainScreen].bounds])) {
+    // easy stuff...
+    self.backgroundColor = [UIColor clearColor];
+    //
+    TSAlertViewController *controller = [[[TSAlertViewController alloc] init] autorelease];
+    
+    // backwards compatbility
+    if ([super respondsToSelector:@selector(rootViewController)]) {
+      self.rootViewController = controller;
+    } else {
+      // pre ios4...
+      [self addSubview:controller.view];
+      self.alertViewController = controller;
+    }
+    
+    // backing gradient
+    self.gradientView = [[[TSAlertViewGradientView alloc] initWithFrame:self.bounds] autorelease];
+    // start hidden
+    self.gradientView.alpha = 0;
+    [self.rootViewController.view addSubview:self.gradientView];
+    
+    [self makeKeyAndVisible];
+  }  
+  return self;
 }
 
 - (void) makeKeyAndVisible {
@@ -51,32 +80,68 @@ static TSAlertOverlayWindow *__sharedWindow = nil;
 
 #if __has_feature(objc_arc) == 0
 - (void) dealloc {
-  NSLog(@"Window dealloc");
+//  NSLog(@"Window dealloc");
+  [_alertViewController release];
   // since there is only one instance, best to reset the pointer here:
   __sharedWindow = nil;
   self.oldKeyWindow = nil;
-  // clear the view controller
-  [[[[TSAlertViewController sharedTSAlertViewController] view] subviews] 
-   makeObjectsPerformSelector:@selector(removeFromSuperview)];
-  //
 	[super dealloc];
 }
 #endif
 
-
-
-- (id) retain {
-  id ret = [super retain];
-  NSLog(@"Retain %d", [self retainCount]);
-  return ret;
-}
-
-- (oneway void) release {
-  [super release];
-  NSLog(@"release %d", [self retainCount]);
-  return;
-}
-
 @end
 
 
+#pragma mark -
+
+@implementation TSAlertViewGradientView
+
+- (id) initWithFrame:(CGRect)frame {
+  if ((self = [super initWithFrame:frame])) {
+    self.backgroundColor = [UIColor clearColor];
+    self.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+    self.contentMode = UIViewContentModeScaleToFill;
+  }
+  return self;
+}
+
+- (void) drawRect: (CGRect) rect
+{
+	// render the radial gradient behind the alertview
+  /*
+   #define kLocations (3)
+   CGFloat locations[kLocations]	= { 0.0, 0.5, 1.0 };
+   CGFloat components[12]	= {	
+   1, 1, 1, 0.5,
+   0, 0, 0, 0.5,
+   0, 0, 0, 0.7	
+   };*/
+  
+#define kLocations (2)
+  CGFloat locations[kLocations]	= { 0.0, 1.0 	};
+	CGFloat components[] = {	
+    0, 0, 0, 0.0,
+		0, 0, 0, 0.7	
+  };
+  
+	CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
+	CGGradientRef backgroundGradient = CGGradientCreateWithColorComponents(colorspace, 
+                                                                         components, 
+                                                                         locations, 
+                                                                         kLocations);
+	CGColorSpaceRelease(colorspace);
+  
+  CGFloat width  = self.frame.size.width;
+	CGFloat height = self.frame.size.height;
+	CGContextDrawRadialGradient(UIGraphicsGetCurrentContext(), 
+                              backgroundGradient, 
+                              CGPointMake(width/2, height/2), 
+                              0,
+                              CGPointMake(width/2, height/2), 
+                              hypotf(width/2, height/2),
+                              0);
+  
+	CGGradientRelease(backgroundGradient);
+}
+
+@end
