@@ -17,9 +17,9 @@ static TSAlertOverlayWindow *__sharedWindow = nil;
 
 @interface TSAlertOverlayWindow ()
 #if __has_feature(objc_arc)
-@property (nonatomic, weak) UIViewController* alertViewController;
+@property (nonatomic, strong) UIViewController* alertViewController;
 #else
-@property (nonatomic, assign) UIViewController* alertViewController;
+@property (nonatomic, retain) UIViewController* alertViewController;
 #endif
 @end
 
@@ -52,10 +52,14 @@ static TSAlertOverlayWindow *__sharedWindow = nil;
     
     // backwards compatbility
     if ([super respondsToSelector:@selector(rootViewController)]) {
+      // will be retained
       self.rootViewController = controller;
+      // this will be redirected
+      self.alertViewController = nil;
     } else {
       // pre ios4...
       [self addSubview:controller.view];
+      // hold onto it here
       self.alertViewController = controller;
     }
     
@@ -78,13 +82,23 @@ static TSAlertOverlayWindow *__sharedWindow = nil;
 
 - (id) initWithFrame:(CGRect)frame { return [self init]; }
 
+- (void) resignKeyWindow {
+  [super resignKeyWindow];
+  [self.oldKeyWindow makeKeyWindow];
+  self.oldKeyWindow = nil;
+  [self release];
+  __sharedWindow = nil;
+}
+
 #if __has_feature(objc_arc) == 0
 - (void) dealloc {
-//  NSLog(@"Window dealloc");
-  [_alertViewController release];
+  // pre iOS 4, only
+  self.alertViewController = nil;
   // since there is only one instance, best to reset the pointer here:
   __sharedWindow = nil;
-  self.oldKeyWindow = nil;
+  [_oldKeyWindow release];
+//  self.oldKeyWindow = nil;
+  NSLog(@"window dealloc\n");
 	[super dealloc];
 }
 #endif

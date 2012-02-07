@@ -51,9 +51,20 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 - (id) init { return [self initWithNibName:nil bundle:nil]; }
 
 - (void)dealloc {
-//  NSLog(@"View controller dealloc");
+  NSLog(@"View controller dealloc");
   self.stack = nil;
   [super dealloc];
+}
+
+- (id) retain {
+  id ret = [super retain];
+  NSLog(@"%d", [self retainCount]);
+  return ret;
+}
+
+- (oneway void) release {
+  [super release];
+  NSLog(@"%d", [self retainCount]);  
 }
 
 - (BOOL) shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation {
@@ -247,9 +258,9 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   } else {
     // nothing on stack - get rid of the window
     TSAlertOverlayWindow *window = [TSAlertOverlayWindow sharedTSAlertOverlayWindow];
-    NSAssert(window, @"No window");
     [window.oldKeyWindow makeKeyWindow];
-    [window release];
+//    NSAssert(window, @"No window");
+//    [window release];
   }
 }
 
