@@ -38,9 +38,9 @@ static TSAlertOverlayWindow *__sharedWindow = nil;
     self.backgroundColor = [UIColor clearColor];
     //
     self.rootViewController = [[[TSAlertViewController alloc] init] autorelease];
+    
     // backing gradient
-    self.gradientView = [[[TSAlertViewGradientView alloc] 
-                          initWithFrame:self.rootViewController.view.bounds] autorelease];
+    self.gradientView = [[[TSAlertViewGradientView alloc] initWithFrame:self.bounds] autorelease];
     // start hidden
     self.gradientView.alpha = 0;
     [self.rootViewController.view addSubview:self.gradientView];
@@ -49,6 +49,11 @@ static TSAlertOverlayWindow *__sharedWindow = nil;
   }  
   return self;
 }
+
+//- (void) layoutSubviews {
+//  [super layoutSubviews];
+//  self.rootViewController.view.frame = self.bounds;
+//}
 
 - (void) makeKeyAndVisible {
   self.oldKeyWindow = [[UIApplication sharedApplication] keyWindow];
@@ -66,6 +71,8 @@ static TSAlertOverlayWindow *__sharedWindow = nil;
 
 #if __has_feature(objc_arc) == 0
 - (void) dealloc {
+  NSLog(@"window dealloc\n");
+  self.oldKeyWindow = nil;
   // pre iOS 4, only
   // since there is only one instance, best to reset the pointer here:
 	[super dealloc];

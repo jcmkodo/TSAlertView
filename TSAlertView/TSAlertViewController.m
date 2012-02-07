@@ -42,68 +42,30 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 - (id) initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
   if ((self = [super initWithNibName:nil bundle:nil])) {
+    self.stack = [NSMutableArray array];   
     self.view.backgroundColor = [UIColor clearColor];
-    self.stack = [NSMutableArray array];        
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    self.view.autoresizesSubviews = YES;
   }
   return self;
 }
 
 - (id) init { return [self initWithNibName:nil bundle:nil]; }
 
-//- (void)dealloc {
-//  NSLog(@"View controller dealloc");
-//  self.stack = nil;
-//  [super dealloc];
-//}
-//
-//- (id) retain {
-//  id ret = [super retain];
-//  NSLog(@"%d", [self retainCount]);
-//  return ret;
-//}
-//
-//- (oneway void) release {
-//  [super release];
-//  NSLog(@"%d", [self retainCount]);  
-//}
-
+- (void)dealloc {
+  NSLog(@"View controller dealloc");
+  self.stack = nil;
+  [super dealloc];
+}
+/*
 - (BOOL) shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation {
   // need to check with the original window... can only do this on ios 4+
   UIWindow *window = [(TSAlertOverlayWindow*) self.view.window oldKeyWindow];
-  if ([window respondsToSelector:@selector(rootViewController)]) {
-    UIViewController *vc = window.rootViewController;
-    return [vc shouldAutorotateToInterfaceOrientation:toInterfaceOrientation];
+  if (window) {
+    return [window.rootViewController shouldAutorotateToInterfaceOrientation:toInterfaceOrientation];
   }
   // rely on app supported orientations...
   return [[UIApplication sharedApplication] supportsOrientation:toInterfaceOrientation];
-}
-/*
-- (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation 
-                                         duration:(NSTimeInterval)duration
-{
-	TSAlertView* av = [self.view.subviews lastObject];
-	if (!av || ![av isKindOfClass:[TSAlertView class]])
-		return;
-	// resize the alertview if it wants to make use of any extra space (or needs to contract)
-#if NS_BLOCKS_AVAILABLE
-	[UIView animateWithDuration:duration 
-                   animations:^{ [self doRotationAnimsOnAlertView:av]; }];
-#else
-  [UIView beginAnimations:kAlertAnimResize context:NULL];
-  [UIView setAnimationDelegate:self];
-  [UIView setAnimationDuration:duration];
-  [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
-  //  [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
-  [self doRotationAnimsOnAlertView:av];
-  [UIView commitAnimations];
-#endif
-}
-
-- (void)doRotationAnimsOnAlertView:(TSAlertView*)av { 
-  [av sizeToFit];
-  CGRect bounds = av.superview.bounds;
-  av.center = CGPointMake( CGRectGetMidX( bounds ), CGRectGetMidY( bounds ) );
-  av.frame = CGRectIntegral( av.frame ); 
 }*/
 
 #pragma mark -
@@ -118,14 +80,12 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     // hide first
     [self hideAlert:top buttonIndex:nil finalStep:NO animated:anim];
   } else {
+    alert.alpha = 0;
     //
     TSAlertOverlayWindow *window = [TSAlertOverlayWindow sharedTSAlertOverlayWindow];
-
-    alert.alpha = 0;
     [window.rootViewController.view addSubview: alert];
     [alert sizeToFit];
-    alert.center = CGPointMake( CGRectGetMidX( window.rootViewController.view.bounds ), 
-                               CGRectGetMidY( window.rootViewController.view.bounds ) );
+    alert.center = CGPointMake( CGRectGetMidX( window.bounds ), CGRectGetMidY( window.bounds ) );
     alert.frame = CGRectIntegral( alert.frame );
         
     // fade in the window  
