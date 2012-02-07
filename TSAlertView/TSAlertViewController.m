@@ -50,22 +50,22 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 - (id) init { return [self initWithNibName:nil bundle:nil]; }
 
-- (void)dealloc {
-  NSLog(@"View controller dealloc");
-  self.stack = nil;
-  [super dealloc];
-}
-
-- (id) retain {
-  id ret = [super retain];
-  NSLog(@"%d", [self retainCount]);
-  return ret;
-}
-
-- (oneway void) release {
-  [super release];
-  NSLog(@"%d", [self retainCount]);  
-}
+//- (void)dealloc {
+//  NSLog(@"View controller dealloc");
+//  self.stack = nil;
+//  [super dealloc];
+//}
+//
+//- (id) retain {
+//  id ret = [super retain];
+//  NSLog(@"%d", [self retainCount]);
+//  return ret;
+//}
+//
+//- (oneway void) release {
+//  [super release];
+//  NSLog(@"%d", [self retainCount]);  
+//}
 
 - (BOOL) shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation {
   // need to check with the original window... can only do this on ios 4+

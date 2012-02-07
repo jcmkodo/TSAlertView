@@ -16,16 +16,10 @@ static TSAlertOverlayWindow *__sharedWindow = nil;
 @end
 
 @interface TSAlertOverlayWindow ()
-#if __has_feature(objc_arc)
-@property (nonatomic, strong) UIViewController* alertViewController;
-#else
-@property (nonatomic, retain) UIViewController* alertViewController;
-#endif
 @end
 
 @implementation TSAlertOverlayWindow
 @synthesize oldKeyWindow=_oldKeyWindow, gradientView=_gradientView;
-@synthesize alertViewController=_alertViewController;
 
 + (TSAlertOverlayWindow*) sharedTSAlertOverlayWindow {
   NSAssert([NSThread isMainThread], @"Not main thread");
@@ -35,12 +29,7 @@ static TSAlertOverlayWindow *__sharedWindow = nil;
   return __sharedWindow;
 }
 
-- (UIViewController*) rootViewController {
-  if ([super respondsToSelector:@selector(rootViewController)]) {
-    return [super rootViewController];
-  }
-  return self.alertViewController;
-}
+- (id) initWithFrame:(CGRect)frame { return [self init]; }
 
 - (id) init {
   // always full screen...
@@ -48,23 +37,10 @@ static TSAlertOverlayWindow *__sharedWindow = nil;
     // easy stuff...
     self.backgroundColor = [UIColor clearColor];
     //
-    TSAlertViewController *controller = [[[TSAlertViewController alloc] init] autorelease];
-    
-    // backwards compatbility
-    if ([super respondsToSelector:@selector(rootViewController)]) {
-      // will be retained
-      self.rootViewController = controller;
-      // this will be redirected
-      self.alertViewController = nil;
-    } else {
-      // pre ios4...
-      [self addSubview:controller.view];
-      // hold onto it here
-      self.alertViewController = controller;
-    }
-    
+    self.rootViewController = [[[TSAlertViewController alloc] init] autorelease];
     // backing gradient
-    self.gradientView = [[[TSAlertViewGradientView alloc] initWithFrame:self.bounds] autorelease];
+    self.gradientView = [[[TSAlertViewGradientView alloc] 
+                          initWithFrame:self.rootViewController.view.bounds] autorelease];
     // start hidden
     self.gradientView.alpha = 0;
     [self.rootViewController.view addSubview:self.gradientView];
@@ -80,25 +56,18 @@ static TSAlertOverlayWindow *__sharedWindow = nil;
 	[super makeKeyAndVisible];
 }
 
-- (id) initWithFrame:(CGRect)frame { return [self init]; }
-
 - (void) resignKeyWindow {
-  [super resignKeyWindow];
   [self.oldKeyWindow makeKeyWindow];
   self.oldKeyWindow = nil;
   [self release];
   __sharedWindow = nil;
+  [super resignKeyWindow];
 }
 
 #if __has_feature(objc_arc) == 0
 - (void) dealloc {
   // pre iOS 4, only
-  self.alertViewController = nil;
   // since there is only one instance, best to reset the pointer here:
-  __sharedWindow = nil;
-  [_oldKeyWindow release];
-//  self.oldKeyWindow = nil;
-  NSLog(@"window dealloc\n");
 	[super dealloc];
 }
 #endif

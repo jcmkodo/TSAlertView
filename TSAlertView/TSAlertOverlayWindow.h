@@ -22,7 +22,5 @@
 #endif
 
 + (TSAlertOverlayWindow*) sharedTSAlertOverlayWindow;
-/** Pre iOS4 compatibility... */
-- (UIViewController*) rootViewController;
 
 @end
