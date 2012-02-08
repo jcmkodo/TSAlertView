@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-#define ALERT_CONTROLLER (TSAlertViewController*) [[TSAlertOverlayWindow sharedTSAlertOverlayWindow] rootViewController]
+#define ALERT_CONTROLLER (TSAlertOverlayWindow*) [TSAlertOverlayWindow sharedTSAlertOverlayWindow]
 
 @class TSAlertViewController, TSAlertViewGradientView;
 
@@ -22,5 +22,11 @@
 #endif
 
 + (TSAlertOverlayWindow*) sharedTSAlertOverlayWindow;
+
+- (void) push:(TSAlertView*) alert 
+     animated:(BOOL)anim;
+- (void) pop:(TSAlertView*) alert 
+ buttonIndex:(NSUInteger) index 
+    animated:(BOOL) anim;
 
 @end

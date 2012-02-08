@@ -11,7 +11,6 @@
 #import "MKDUIKeyboardInfo.h"
 //
 #import "TSAlertOverlayWindow.h"
-#import "TSAlertViewController.h"
 
 //#if NS_BLOCKS_AVAILABLE
 //#undef NS_BLOCKS_AVAILABLE
@@ -474,32 +473,33 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 - (void) onKeyboardDidShow: (NSNotification*) note {
   // convert keyboard rect to window coordinates
-  CGRect deviceRect = [[[note userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];  
-  // convert keyboard (screen) rect to our window...
-  CGRect keyRect = [self.window convertRect:deviceRect fromWindow:nil];
+  CGRect keyRect = [[[note userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];  
+  CGRect rect = [[UIScreen mainScreen] bounds];
+  CGRect discard;
   
-  CGFloat spaceHeight;
-  if (self.window.frame.size.height == keyRect.size.height) {
-    // landscape...
-    spaceHeight = self.window.frame.size.width - keyRect.size.width;
-  } else {
-    // portrait
-    spaceHeight = self.window.frame.size.height - keyRect.size.height;
+  switch ([[UIApplication sharedApplication] statusBarOrientation]) {
+    case UIInterfaceOrientationPortrait:
+      CGRectDivide(rect, &rect, &discard, keyRect.origin.y, CGRectMinYEdge);
+      break;
+    case UIInterfaceOrientationPortraitUpsideDown:
+      CGRectDivide(rect, &discard, &rect, keyRect.size.height, CGRectMinYEdge);
+      break;
+    case UIInterfaceOrientationLandscapeLeft:
+      CGRectDivide(rect, &rect, &discard, keyRect.origin.x, CGRectMinXEdge);
+      break;
+    case UIInterfaceOrientationLandscapeRight:
+      CGRectDivide(rect, &discard, &rect, keyRect.size.width, CGRectMinXEdge);
+      break;
   }
   
+  CGRect viewRect = [self convertRect:rect fromView:nil];
   const CGFloat keyboardPad = 10;
-  //    const CGFloat keyboardPad = 0;
-  
-  if ( self.frame.size.height > spaceHeight - keyboardPad )
+  if ( self.frame.size.height > viewRect.size.height - keyboardPad )
   {
-    self.maxHeight = spaceHeight - keyboardPad;
+    self.maxHeight = viewRect.size.height - keyboardPad;
     [self sizeToFit];
     [self layoutSubviews];
   }
-  
-  // centre vertically in the space
-  CGPoint c = self.center;
-  c.y = spaceHeight / 2;
   
 #if NS_BLOCKS_AVAILABLE
   [UIView animateWithDuration: kAlertBoxAnimDuration 
@@ -511,14 +511,15 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   [UIView beginAnimations:nil context:NULL];
   [UIView setAnimationDuration:kAlertBoxAnimDuration];
   [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
-  self.center = c;
-  self.frame = CGRectIntegral(self.frame);
+ // self.window.frame = CGRectIntegral(rect);
+  self.center = CGRectCentrePoint(rect);
   [UIView commitAnimations];    
 #endif
 }
 
 - (void) onKeyboardWillHide: (NSNotification*) note
 {
+  return;
 #if NS_BLOCKS_AVAILABLE
 	[UIView animateWithDuration: kAlertBoxAnimDuration 
                    animations: ^{
