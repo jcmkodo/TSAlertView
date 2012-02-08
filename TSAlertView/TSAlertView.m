@@ -516,7 +516,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   [UIView beginAnimations:nil context:NULL];
   [UIView setAnimationDuration:kAlertBoxAnimDuration];
   [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
- // self.window.frame = CGRectIntegral(rect);
   self.center = CGRectCentrePoint(rect);
   [UIView commitAnimations];    
 #endif

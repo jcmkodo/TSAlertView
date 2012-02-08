@@ -16,7 +16,6 @@ static NSString *const kAlertAnimShow     = @"Show";
 static NSString *const kAlertAnimDismiss1 = @"Dismiss1";
 static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
-
 @interface TSAlertViewGradientView : UIView
 @end
 
@@ -59,12 +58,11 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     [[NSNotificationCenter defaultCenter] addObserver:self 
                                              selector:@selector(statusBarDidChangeOrientation:) 
                                                  name:UIApplicationDidChangeStatusBarOrientationNotification 
-                                               object:nil];
-    
-    self.stack = [NSMutableArray array];   
+                                               object:nil];    
 
     // easy stuff...
     self.backgroundColor = [UIColor clearColor];
+    self.stack = [NSMutableArray array];   
     
     // backing gradient
     self.gradientView = [[[TSAlertViewGradientView alloc] initWithFrame:self.bounds] autorelease];
@@ -101,16 +99,14 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   [super resignKeyWindow];
 }
 
-#if __has_feature(objc_arc) == 0
 - (void) dealloc {
   NSLog(@"window dealloc\n");
   [[NSNotificationCenter defaultCenter] removeObserver:self];
   self.oldKeyWindow = nil;
-  // pre iOS 4, only
-  // since there is only one instance, best to reset the pointer here:
+#if __has_feature(objc_arc) == 0
 	[super dealloc];
-}
 #endif
+}
 
 #pragma mark -
 #pragma mark
@@ -126,20 +122,14 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     [self hideAlert:top buttonIndex:nil finalStep:NO animated:anim];
   } else {
     //
-    TSAlertOverlayWindow *window = self;
-    CGRect rect = [self convertRect:window.frame fromView:nil];
-    rect = rect;
-    
-    alert.autoresizingMask = UIViewAutoresizingNone;
-    window.autoresizingMask = UIViewAutoresizingNone;
-    
+    CGRect rect = [self convertRect:self.frame fromView:nil];
     alert.alpha = 0;
-    [window addSubview: alert];
+    [self addSubview: alert];
     [alert sizeToFit];
     alert.center = CGRectCentrePoint(rect);
     alert.frame = CGRectIntegral( alert.frame );
     
-    [window makeKeyAndVisible];
+    [self makeKeyAndVisible];
     
     // fade in the window  
     NSArray *context = [[NSArray alloc] initWithObjects:alert, nil];    
@@ -159,7 +149,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
       [UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
       [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
       [UIView setAnimationDuration:kAlertBackgroundAnimDuration];
-      window.gradientView.alpha = 1;
+      self.gradientView.alpha = 1;
       [UIView commitAnimations];
 #endif	
     } else {
@@ -272,8 +262,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     // nothing on stack - get rid of the window
     TSAlertOverlayWindow *window = [TSAlertOverlayWindow sharedTSAlertOverlayWindow];
     [window.oldKeyWindow makeKeyWindow];
-    //    NSAssert(window, @"No window");
-    //    [window release];
   }
 }
 
@@ -326,16 +314,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 - (void) drawRect: (CGRect) rect
 {
-	// render the radial gradient behind the alertview
-  /*
-   #define kLocations (3)
-   CGFloat locations[kLocations]	= { 0.0, 0.5, 1.0 };
-   CGFloat components[12]	= {	
-   1, 1, 1, 0.5,
-   0, 0, 0, 0.5,
-   0, 0, 0, 0.7	
-   };*/
-  
 #define kLocations (2)
   CGFloat locations[kLocations]	= { 0.0, 1.0 	};
 	CGFloat components[] = {	
