@@ -44,16 +44,17 @@ static TSAlertOverlayWindow *__sharedWindow = nil;
     // start hidden
     self.gradientView.alpha = 0;
     [self.rootViewController.view addSubview:self.gradientView];
-    
-    [self makeKeyAndVisible];
   }  
   return self;
 }
 
 - (void) makeKeyAndVisible {
-  self.oldKeyWindow = [[UIApplication sharedApplication] keyWindow];
-	self.windowLevel = UIWindowLevelAlert;
-	[super makeKeyAndVisible];
+  if (![self isKeyWindow]) {
+    self.oldKeyWindow = [[UIApplication sharedApplication] keyWindow];
+    NSAssert(self.oldKeyWindow, @"No old key window");
+    self.windowLevel = UIWindowLevelAlert;
+    [super makeKeyAndVisible];
+  }
 }
 
 - (void) resignKeyWindow {

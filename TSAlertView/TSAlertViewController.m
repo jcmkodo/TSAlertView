@@ -80,14 +80,22 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     // hide first
     [self hideAlert:top buttonIndex:nil finalStep:NO animated:anim];
   } else {
-    alert.alpha = 0;
     //
     TSAlertOverlayWindow *window = [TSAlertOverlayWindow sharedTSAlertOverlayWindow];
+    CGRect rect = [self.view convertRect:window.frame fromView:nil];
+    rect = rect;
+    
+    alert.autoresizingMask = UIViewAutoresizingNone;
+    window.autoresizingMask = UIViewAutoresizingNone;
+    
+    alert.alpha = 0;
     [window.rootViewController.view addSubview: alert];
     [alert sizeToFit];
-    alert.center = CGPointMake( CGRectGetMidX( window.bounds ), CGRectGetMidY( window.bounds ) );
+    alert.center = CGRectCentrePoint(rect);
     alert.frame = CGRectIntegral( alert.frame );
         
+    [window makeKeyAndVisible];
+    
     // fade in the window  
     NSArray *context = [[NSArray alloc] initWithObjects:alert, nil];    
     if (anim) {
@@ -247,6 +255,8 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   else if ([animationID isEqual:kAlertAnimShow]) { 
     [alertView pulse];
     [self checkStackAnimated:YES];
+    
+    alertView.center = alertView.window.center;
   }
   
   // always need to release the context array here:
