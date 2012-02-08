@@ -87,9 +87,10 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     self.oldKeyWindow = [[UIApplication sharedApplication] keyWindow];
     NSAssert(self.oldKeyWindow, @"No old key window");
     self.windowLevel = UIWindowLevelAlert;
-    [self statusBarDidChangeOrientation:nil];
     [super makeKeyAndVisible];
   }
+  // rotate subviews...
+  [self statusBarDidChangeOrientation:nil];
 }
 
 - (void) resignKeyWindow {
@@ -101,7 +102,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 }
 
 - (void) dealloc {
-  NSLog(@"window dealloc\n");
+//  NSLog(@"window dealloc\n");
   [[NSNotificationCenter defaultCenter] removeObserver:self];
   self.oldKeyWindow = nil;
 #if __has_feature(objc_arc) == 0
@@ -240,13 +241,16 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
  buttonIndex:(NSUInteger) index 
     animated:(BOOL) animated
 {
-  if ([self.stack containsObject:alert]) {
-    [self.stack removeObject:alert];
+  id top = [[self.stack top] retain];
+  [self.stack removeObject:alert];
+  // don't need to show anything unless this is the top...
+  if (top == alert) {
     [self hideAlert:alert 
         buttonIndex:[NSNumber numberWithUnsignedInteger:index] 
           finalStep:NO 
-           animated:animated];
+           animated:animated];    
   }
+  [top release];
 }
 
 - (void) checkStackAnimated:(BOOL)anim {
