@@ -88,6 +88,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     self.oldKeyWindow = [[UIApplication sharedApplication] keyWindow];
     NSAssert(self.oldKeyWindow, @"No old key window");
     self.windowLevel = UIWindowLevelAlert;
+    [self statusBarDidChangeOrientation:nil];
     [super makeKeyAndVisible];
   }
 }
@@ -306,8 +307,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   // always need to release the context array here:
   [animContext release];
 }
-
-
 
 @end
 
