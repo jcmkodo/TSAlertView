@@ -27,6 +27,11 @@ CGFloat kTSAlertView_BottomMargin = 7.0;
 CGFloat kTSAlertView_RowMargin	= 7.0;
 CGFloat kTSAlertView_ColumnMargin = 10.0;
 
+const CGFloat kScale1 = 0.6;
+const CGFloat kScale2 = 1.1/0.6;
+const CGFloat kScale3 = 0.9/1.1;
+const CGFloat kScale4 = 1.0/0.9;
+
 static NSString *const kAlertAnimPulse1   = @"PulsePart1";
 static NSString *const kAlertAnimPulse2   = @"PulsePart2";
 static NSString *const kAlertAnimShow     = @"Show";
@@ -297,7 +302,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     [UIView setAnimationDelegate:self];
     [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
     [UIView setAnimationDuration:1.0/15.0];
-    self.transform = CGAffineTransformMakeScale(0.9, 0.9);
+    self.transform = CGAffineTransformScale(self.transform, kScale3, kScale3);
     [UIView commitAnimations];
   }
   if ([animationID isEqual:kAlertAnimPulse2]) {
@@ -305,7 +310,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     [UIView setAnimationDelegate:[TSAlertView class]];
     [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
     [UIView setAnimationDuration:1.0/7.5];
-    self.transform = CGAffineTransformIdentity;
+    self.transform = CGAffineTransformScale(self.transform, kScale4, kScale4);
     [UIView commitAnimations];    
     if ( self.style == TSAlertViewStyleInput )
     {
@@ -519,7 +524,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 - (void) onKeyboardWillHide: (NSNotification*) note
 {
-  return;
 #if NS_BLOCKS_AVAILABLE
 	[UIView animateWithDuration: kAlertBoxAnimDuration 
                    animations: ^{
@@ -750,11 +754,11 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   }
   
 	// pulse animation thanks to:  http://delackner.com/blog/2009/12/mimicking-uialertviews-animated-transition/
-  self.transform = CGAffineTransformMakeScale(0.6, 0.6);
+  self.transform = CGAffineTransformScale(self.transform, kScale1, kScale1);
 #if NS_BLOCKS_AVAILABLE
   [UIView animateWithDuration:kAlertBoxAnimDuration animations:^{
     self.alpha = 1;
-    self.transform = CGAffineTransformMakeScale(1.1, 1.1);
+    self.transform = CGAffineTransformScale(self.transform, kScale2, kScale2);
   }];
 #else
                      [UIView beginAnimations:kAlertAnimPulse1 context:NULL];
@@ -764,7 +768,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
                      [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
                      [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
                      self.alpha = 1;
-                     self.transform = CGAffineTransformMakeScale(1.1, 1.1);
+                     self.transform = CGAffineTransformScale(self.transform, kScale2, kScale2);
                      [UIView commitAnimations];
 #endif  
                    }
