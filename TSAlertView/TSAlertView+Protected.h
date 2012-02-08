@@ -6,20 +6,6 @@
 //  Copyright (c) 2012 mkodo. All rights reserved.
 //
 
-//#ifndef NS_BLOCKS_AVAILABLE
-//#error Requires Blocks!
-//#endif
-
-#if __has_feature(objc_arc)
-#define ARC_BRIDGE ARC_BRIDGE
-#else
-#define ARC_BRIDGE
-#endif
-
-#if __has_feature(objc_arc)
-#error ARC not yet supported
-#endif
-
 @interface TSAlertView ()
 @property (nonatomic, readonly) NSMutableArray *buttons;
 @property (nonatomic, readonly) UILabel *titleLabel;

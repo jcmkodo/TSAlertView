@@ -50,11 +50,6 @@ static TSAlertOverlayWindow *__sharedWindow = nil;
   return self;
 }
 
-//- (void) layoutSubviews {
-//  [super layoutSubviews];
-//  self.rootViewController.view.frame = self.bounds;
-//}
-
 - (void) makeKeyAndVisible {
   self.oldKeyWindow = [[UIApplication sharedApplication] keyWindow];
 	self.windowLevel = UIWindowLevelAlert;

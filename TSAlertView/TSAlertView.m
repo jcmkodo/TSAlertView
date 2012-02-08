@@ -474,11 +474,10 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 - (void) onKeyboardDidShow: (NSNotification*) note {
   // convert keyboard rect to window coordinates
-  CGRect deviceRect = [[[note userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
-  
+  CGRect deviceRect = [[[note userInfo] objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];  
   // convert keyboard (screen) rect to our window...
   CGRect keyRect = [self.window convertRect:deviceRect fromWindow:nil];
-
+  
   CGFloat spaceHeight;
   if (self.window.frame.size.height == keyRect.size.height) {
     // landscape...
@@ -497,7 +496,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     [self sizeToFit];
     [self layoutSubviews];
   }
-    
+  
   // centre vertically in the space
   CGPoint c = self.center;
   c.y = spaceHeight / 2;
@@ -752,35 +751,10 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 	// pulse animation thanks to:  http://delackner.com/blog/2009/12/mimicking-uialertviews-animated-transition/
   self.transform = CGAffineTransformMakeScale(0.6, 0.6);
 #if NS_BLOCKS_AVAILABLE
-	[UIView animateWithDuration: kAlertBoxAnimDuration 
-                   animations: ^{
-                     self.alpha = 1;
-                     self.transform = CGAffineTransformMakeScale(1.1, 1.1);
-                   }
-                   completion: ^(BOOL finished){
-                     [UIView animateWithDuration:1.0/15.0
-                                      animations: ^{
-                                        self.transform = CGAffineTransformMakeScale(0.9, 0.9);
-                                      }
-                                      completion: ^(BOOL finished) {
-                                        [UIView animateWithDuration:(NSTimeInterval)duration 
-                                                         animations:(void (^)(void))animations 
-                                                         completion:(void (^)(BOOL finished))completion
-                                         
-                                         [UIView animateWithDuration:1.0/7.5
-                                                          animations: ^{
-                                                            self.transform = CGAffineTransformIdentity;
-                                                            if ( self.style == TSAlertViewStyleInput )
-                                                            {
-                                                              [self layoutSubviews];
-                                                              [self.inputTextField becomeFirstResponder];
-                                                            }
-                                                          } 
-                                                          completion: ^ {
-                                                            [TSAlertView showDidComplete:self];
-                                                          }];
-                                         }];
-                                      }];
+  [UIView animateWithDuration:kAlertBoxAnimDuration animations:^{
+    self.alpha = 1;
+    self.transform = CGAffineTransformMakeScale(1.1, 1.1);
+  }];
 #else
                      [UIView beginAnimations:kAlertAnimPulse1 context:NULL];
                      [UIView setAnimationDelegate:self];

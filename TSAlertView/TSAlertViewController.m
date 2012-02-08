@@ -57,7 +57,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   self.stack = nil;
   [super dealloc];
 }
-/*
+
 - (BOOL) shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation {
   // need to check with the original window... can only do this on ios 4+
   UIWindow *window = [(TSAlertOverlayWindow*) self.view.window oldKeyWindow];
@@ -66,7 +66,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   }
   // rely on app supported orientations...
   return [[UIApplication sharedApplication] supportsOrientation:toInterfaceOrientation];
-}*/
+}
 
 #pragma mark -
 
