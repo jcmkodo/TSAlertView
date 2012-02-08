@@ -311,6 +311,8 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
     [UIView setAnimationDuration:1.0/7.5];
     self.transform = CGAffineTransformScale(self.transform, kScale4, kScale4);
+    TSAlertOverlayWindow *window = (TSAlertOverlayWindow*) self.window;
+    self.transform = window.oldKeyWindow.rootViewController.view.transform;
     [UIView commitAnimations];    
     if ( self.style == TSAlertViewStyleInput )
     {
