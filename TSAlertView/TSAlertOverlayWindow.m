@@ -293,7 +293,9 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     [alertView pulse];
     [self checkStackAnimated:YES];
     
-    alertView.center = alertView.window.center;
+    if (alertView.window) {
+      alertView.center = alertView.window.center;
+    }
   }
   
   // always need to release the context array here:
