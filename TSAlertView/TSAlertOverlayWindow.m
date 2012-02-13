@@ -105,6 +105,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 //  NSLog(@"window dealloc\n");
   [[NSNotificationCenter defaultCenter] removeObserver:self];
   self.oldKeyWindow = nil;
+  self.stack = nil;
 #if __has_feature(objc_arc) == 0
 	[super dealloc];
 #endif
