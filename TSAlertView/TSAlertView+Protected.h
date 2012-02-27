@@ -27,15 +27,4 @@
 - (void) onButtonPress: (id) sender;
 - (void) pulse;
 
-//- (void) animationWaitLoopForSelectorNamed:(NSString*)selName;
-
-#if NS_BLOCKS_AVAILABLE == 0
-- (void)animationDidStop:(NSString *)animationID 
-                finished:(NSNumber *)finished 
-                 context:(void *)context;
-#endif
-//+ (void)animationDidStop:(NSString *)animationID 
-//                finished:(NSNumber *)finished 
-//                 context:(void *)context;
-
 @end

@@ -30,11 +30,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
          finalStep:(BOOL)final
           animated:(BOOL)anim;
 - (void) checkStackAnimated:(BOOL)anim;
-#if NS_BLOCKS_AVAILABLE == 0
-- (void)animationDidStop:(NSString *)animationID 
-                finished:(NSNumber *)finished 
-                 context:(void *)context;
-#endif
 - (void)statusBarDidChangeOrientation:(NSNotification *)notification;
 @end
 
@@ -59,7 +54,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
                                              selector:@selector(statusBarDidChangeOrientation:) 
                                                  name:UIApplicationDidChangeStatusBarOrientationNotification 
                                                object:nil];    
-
+    
     // easy stuff...
     self.backgroundColor = [UIColor clearColor];
     self.stack = [NSMutableArray array];   
@@ -102,7 +97,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 }
 
 - (void) dealloc {
-//  NSLog(@"window dealloc\n");
+  //  NSLog(@"window dealloc\n");
   [[NSNotificationCenter defaultCenter] removeObserver:self];
   self.oldKeyWindow = nil;
   self.stack = nil;
@@ -134,31 +129,19 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     [self makeKeyAndVisible];
     
     // fade in the window  
-    NSArray *context = [[NSArray alloc] initWithObjects:alert, nil];    
-    if (anim) {
-#if NS_BLOCKS_AVAILABLE
-      [UIView animateWithDuration:kAlertBackgroundAnimDuration 
-                            delay:0 
-                          options:UIViewAnimationOptionCurveEaseIn 
-                       animations:^{
-                         ow.alpha = 1;
-                       } completion:^(BOOL finished) {
-                         [self showAlert:alertView];
-                       }];
-#else
-      [UIView beginAnimations:kAlertAnimShow context:context];
-      [UIView setAnimationDelegate:self];
-      [UIView setAnimationCurve:UIViewAnimationCurveEaseIn];
-      [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
-      [UIView setAnimationDuration:kAlertBackgroundAnimDuration];
-      self.gradientView.alpha = 1;
-      [UIView commitAnimations];
-#endif	
-    } else {
-      [self animationDidStop:kAlertAnimShow 
-                    finished:[NSNumber numberWithBool:YES] 
-                     context:context];
-    }
+    [UIView animateWithDuration:anim ? kAlertBackgroundAnimDuration : 0
+                          delay:0 
+                        options:UIViewAnimationOptionCurveEaseIn 
+                     animations:^
+     {
+       self.gradientView.alpha = 1;
+       if (alert.window) {
+         alert.center = alert.window.center;
+       }
+     } completion:^(BOOL finished) {
+       [alert pulse];
+       [self checkStackAnimated:YES];          
+     }];
   }
 }
 
@@ -167,7 +150,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
          finalStep:(BOOL)final
           animated:(BOOL)animated
 {
-  NSArray *context = [[NSArray alloc] initWithObjects:alert, num, nil];
 #ifdef __clang_analyzer__
   // silence false positive
   [context autorelease];
@@ -177,64 +159,33 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     // final step - hide the alert itself
     [alert.inputTextField resignFirstResponder];
     
-    if (animated) {
-      [UIView beginAnimations:kAlertAnimDismiss2 context:(ARC_BRIDGE void*) context];
-      [UIView setAnimationDelegate:self];
-      [UIView setAnimationDuration:kAlertBackgroundAnimDuration];
-      [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
-      [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
-      alert.alpha = 0;
-      [UIView commitAnimations];
-    } else {
-      [self animationDidStop:kAlertAnimDismiss2 
-                    finished:[NSNumber numberWithBool:YES] 
-                     context:alert];
-    }
+    [UIView animateWithDuration:animated ? kAlertBackgroundAnimDuration : 0
+                          delay:0 
+                        options:UIViewAnimationOptionCurveEaseIn 
+                     animations:^
+     {
+       alert.alpha = 0;
+       
+     } completion:^(BOOL finished) {
+       // delegate call
+       if ([alert.delegate respondsToSelector:@selector(alertView:didDismissWithButtonIndex:)]) {
+         [alert.delegate alertView:alert didDismissWithButtonIndex:[num unsignedIntegerValue]];
+       }
+       [alert removeFromSuperview];
+       [self checkStackAnimated:YES];    
+     }];    
     
   } else {
     // first step - fade out the window    
-    if ( animated ) {
-#if NS_BLOCKS_AVAILABLE
-      [UIView animateWithDuration:kAlertBoxAnimDuration 
-                            delay:0 
-                          options:UIViewAnimationOptionCurveEaseInOut 
-                       animations:^{
-                         alertView.alpha = 0;
-                       } completion:^(BOOL finished) {
-                         if ( alertView.style == TSAlertViewStyleInput && [alertView.inputTextField isFirstResponder] ) {
-                           [alertView.inputTextField resignFirstResponder];
-                         }
-                         
-                         [UIView animateWithDuration:kAlertBackgroundAnimDuration 
-                                               delay:0 
-                                             options:UIViewAnimationOptionCurveEaseOut 
-                                          animations:^{
-                                            [alertView.window resignKeyWindow];
-                                            alertView.window.alpha = 0;
-                                          } completion:^(BOOL finished) {
-                                            [alertView releaseWindow: buttonIndex];
-                                            // some other to show?
-                                            if ([__TSAlertViewStack count]) {
-                                              [self show:[__TSAlertViewStack lastObject]];
-                                            }
-                                            [self hideDidComplete:alertView];
-                                          }];
-                       }];
-#else
-      [UIView beginAnimations:kAlertAnimDismiss1 context:(ARC_BRIDGE void*) context];
-      [UIView setAnimationDuration:kAlertBoxAnimDuration];
-      [UIView setAnimationDelegate:self];
-      [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
-      [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];    
-      [TSAlertOverlayWindow sharedTSAlertOverlayWindow].gradientView.alpha = 0;
-      [UIView commitAnimations];
-#endif		
-    }
-    else {
-      [self animationDidStop:kAlertAnimDismiss1 
-                    finished:[NSNumber numberWithBool:YES] 
-                     context:context];
-    } 
+    [UIView animateWithDuration:animated ? kAlertBoxAnimDuration : 0
+                          delay:0 
+                        options:UIViewAnimationOptionCurveEaseInOut 
+                     animations:^
+     {
+       [TSAlertOverlayWindow sharedTSAlertOverlayWindow].gradientView.alpha = 0;
+     } completion:^(BOOL finished) {
+       [self hideAlert:alert buttonIndex:num finalStep:YES animated:YES];
+     }];
   }
 }
 
@@ -268,39 +219,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     TSAlertOverlayWindow *window = [TSAlertOverlayWindow sharedTSAlertOverlayWindow];
     [window.oldKeyWindow makeKeyWindow];
   }
-}
-
-- (void)animationDidStop:(NSString *)animationID 
-                finished:(NSNumber *)finished 
-                 context:(void *)context
-{
-  NSArray *animContext = (context != NULL) ? (ARC_BRIDGE NSArray*) context : nil;
-  TSAlertView *alertView = [animContext objectAtIndex:0];
-  NSNumber *index = ([animContext count] > 1) ? [animContext objectAtIndex:1] : nil;
-  
-  if ([animationID isEqual:kAlertAnimDismiss1]) {
-    [self hideAlert:alertView buttonIndex:index finalStep:YES animated:YES];
-  }
-  
-  else if ([animationID isEqual:kAlertAnimDismiss2]) {
-    // delegate call
-    if ([alertView.delegate respondsToSelector:@selector(alertView:didDismissWithButtonIndex:)]) {
-      [alertView.delegate alertView:alertView didDismissWithButtonIndex:[index unsignedIntegerValue]];
-    }
-    [alertView removeFromSuperview];
-    [self checkStackAnimated:YES];    
-  }  
-  else if ([animationID isEqual:kAlertAnimShow]) { 
-    [alertView pulse];
-    [self checkStackAnimated:YES];
-    
-    if (alertView.window) {
-      alertView.center = alertView.window.center;
-    }
-  }
-  
-  // always need to release the context array here:
-  [animContext release];
 }
 
 @end

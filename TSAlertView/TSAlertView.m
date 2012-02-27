@@ -12,12 +12,6 @@
 //
 #import "TSAlertOverlayWindow.h"
 
-//#if NS_BLOCKS_AVAILABLE
-//#undef NS_BLOCKS_AVAILABLE
-//#endif
-
-//static BOOL __TSAlertAnimFlag = NO;
-
 const NSTimeInterval kAlertBoxAnimDuration = 0.1;
 const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 
@@ -292,37 +286,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   return CGSizeMake( self.width, totalHeight + 10 );
 }
 
-#if NS_BLOCKS_AVAILABLE == 0
-- (void)animationDidStop:(NSString *)animationID 
-                finished:(NSNumber *)finished 
-                 context:(void *)context
-{
-  if ([animationID isEqual:kAlertAnimPulse1]) {
-    [UIView beginAnimations:kAlertAnimPulse2 context:NULL];
-    [UIView setAnimationDelegate:self];
-    [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
-    [UIView setAnimationDuration:1.0/15.0];
-    self.transform = CGAffineTransformScale(self.transform, kScale3, kScale3);
-    [UIView commitAnimations];
-  }
-  if ([animationID isEqual:kAlertAnimPulse2]) {
-    [UIView beginAnimations:nil context:NULL];
-    [UIView setAnimationDelegate:[TSAlertView class]];
-    [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
-    [UIView setAnimationDuration:1.0/7.5];
-    // identity on size...
-    TSAlertOverlayWindow *window = (TSAlertOverlayWindow*) self.window;
-    self.transform = window.oldKeyWindow.rootViewController.view.transform;
-    [UIView commitAnimations];    
-    if ( self.style == TSAlertViewStyleInput )
-    {
-      [self layoutSubviews];
-      [self.inputTextField becomeFirstResponder];
-    }
-  }
-}
-#endif
-
 - (CGSize) titleLabelSize
 {
   CGSize s = CGSizeZero;
@@ -508,37 +471,17 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     [self layoutSubviews];
   }
   
-#if NS_BLOCKS_AVAILABLE
   [UIView animateWithDuration: kAlertBoxAnimDuration 
-                   animations: ^{
-                     self.center = c;
-                     self.frame = CGRectIntegral(self.frame);
-                   }];
-#else
-  [UIView beginAnimations:nil context:NULL];
-  [UIView setAnimationDuration:kAlertBoxAnimDuration];
-  [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
-  self.center = CGRectCentrePoint(rect);
-  [UIView commitAnimations];    
-#endif
+                   animations: ^{ self.center = CGRectCentrePoint(rect); }];
 }
 
 - (void) onKeyboardWillHide: (NSNotification*) note
 {
-#if NS_BLOCKS_AVAILABLE
 	[UIView animateWithDuration: kAlertBoxAnimDuration 
                    animations: ^{
                      self.center = CGPointMake( CGRectGetMidX( self.superview.bounds ), CGRectGetMidY( self.superview.bounds ));
                      self.frame = CGRectIntegral(self.frame);
                    }];
-#else
-  [UIView beginAnimations:nil context:NULL];
-  [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
-  [UIView setAnimationDuration:kAlertBoxAnimDuration];
-  self.center = CGPointMake( CGRectGetMidX( self.superview.bounds ), CGRectGetMidY( self.superview.bounds ));
-  self.frame = CGRectIntegral(self.frame);
-  [UIView commitAnimations];    
-#endif
 }
 
 - (UIImageView*) messageTextViewMaskView
@@ -755,27 +698,35 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   }
   
 	// pulse animation thanks to:  http://delackner.com/blog/2009/12/mimicking-uialertviews-animated-transition/
-  self.transform = CGAffineTransformScale(self.transform, kScale1, kScale1);
-#if NS_BLOCKS_AVAILABLE
-  [UIView animateWithDuration:kAlertBoxAnimDuration animations:^{
+  
+  [UIView animateWithDuration:kAlertBackgroundAnimDuration delay:0 options:0 animations:^{
     self.alpha = 1;
-    self.transform = CGAffineTransformScale(self.transform, kScale2, kScale2);
+    self.transform = CGAffineTransformScale(self.transform, kScale1, kScale1);
+  } completion:^(BOOL finished) {
+    [UIView animateWithDuration:kAlertBackgroundAnimDuration delay:0 options:0 animations:^{
+      self.transform = CGAffineTransformScale(self.transform, kScale2, kScale2);
+    } completion:^(BOOL finished) {
+      [UIView animateWithDuration:kAlertBackgroundAnimDuration delay:0 options:0 animations:^{
+        self.transform = CGAffineTransformScale(self.transform, kScale3, kScale3);
+      } completion:^(BOOL finished) {
+        [UIView animateWithDuration:1.0/7.5 animations:^{
+          // identity on size...
+          TSAlertOverlayWindow *window = (TSAlertOverlayWindow*) self.window;
+          self.transform = window.oldKeyWindow.rootViewController.view.transform;
+          [UIView commitAnimations];    
+          if ( self.style == TSAlertViewStyleInput )
+          {
+            [self layoutSubviews];
+            [self.inputTextField becomeFirstResponder];
+          }
+        }];
+      }];
+    }];
   }];
-#else
-                     [UIView beginAnimations:kAlertAnimPulse1 context:NULL];
-                     [UIView setAnimationDelegate:self];
-                     [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
-                     [UIView setAnimationDuration:kAlertBoxAnimDuration];
-                     [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
-                     [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
-                     self.alpha = 1;
-                     self.transform = CGAffineTransformScale(self.transform, kScale2, kScale2);
-                     [UIView commitAnimations];
-#endif  
-                   }
-   
-   @end
-   
-   
-   
-   
+}
+
+@end
+
+
+
+
