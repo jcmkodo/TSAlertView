@@ -699,14 +699,14 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   
 	// pulse animation thanks to:  http://delackner.com/blog/2009/12/mimicking-uialertviews-animated-transition/
   
-  [UIView animateWithDuration:kAlertBackgroundAnimDuration delay:0 options:0 animations:^{
+  [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
     self.alpha = 1;
     self.transform = CGAffineTransformScale(self.transform, kScale1, kScale1);
   } completion:^(BOOL finished) {
-    [UIView animateWithDuration:kAlertBackgroundAnimDuration delay:0 options:0 animations:^{
+    [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
       self.transform = CGAffineTransformScale(self.transform, kScale2, kScale2);
     } completion:^(BOOL finished) {
-      [UIView animateWithDuration:kAlertBackgroundAnimDuration delay:0 options:0 animations:^{
+      [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
         self.transform = CGAffineTransformScale(self.transform, kScale3, kScale3);
       } completion:^(BOOL finished) {
         [UIView animateWithDuration:1.0/7.5 animations:^{
