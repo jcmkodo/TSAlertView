@@ -69,9 +69,9 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 }
 
 - (void)statusBarDidChangeOrientation:(NSNotification *)notification {
-  NSAssert(self.oldKeyWindow.rootViewController.view, @"No view");
   for (UIView *view in self.subviews) {
     if (view != self.gradientView) {
+      NSAssert(self.oldKeyWindow.rootViewController.view, @"No view");
       view.transform = self.oldKeyWindow.rootViewController.view.transform;
     }
   }
