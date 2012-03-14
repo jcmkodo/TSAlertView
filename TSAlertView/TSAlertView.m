@@ -687,25 +687,31 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     self.alpha = 1;
     self.transform = CGAffineTransformScale(self.transform, kScale1, kScale1);
   } completion:^(BOOL finished) {
-    [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
-      self.transform = CGAffineTransformScale(self.transform, kScale2, kScale2);
-    } completion:^(BOOL finished) {
+    if (finished) {
       [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
-        self.transform = CGAffineTransformScale(self.transform, kScale3, kScale3);
+        self.transform = CGAffineTransformScale(self.transform, kScale2, kScale2);
       } completion:^(BOOL finished) {
-        [UIView animateWithDuration:1.0/7.5 animations:^{
-          // identity on size...
-          TSAlertOverlayWindow *window = (TSAlertOverlayWindow*) self.window;
-          self.transform = window.oldKeyWindow.rootViewController.view.transform;
-          [UIView commitAnimations];    
-          if ( self.style == TSAlertViewStyleInput )
-          {
-            [self layoutSubviews];
-            [self.inputTextField becomeFirstResponder];
-          }
-        }];
+        if (finished) {
+          [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
+            self.transform = CGAffineTransformScale(self.transform, kScale3, kScale3);
+          } completion:^(BOOL finished) {
+            if (finished) {
+              [UIView animateWithDuration:1.0/7.5 animations:^{
+                // identity on size...
+                TSAlertOverlayWindow *window = (TSAlertOverlayWindow*) self.window;
+                self.transform = window.oldKeyWindow.rootViewController.view.transform;
+                [UIView commitAnimations];    
+                if ( self.style == TSAlertViewStyleInput )
+                {
+                  [self layoutSubviews];
+                  [self.inputTextField becomeFirstResponder];
+                }
+              }];
+            }
+          }];
+        }
       }];
-    }];
+    }
   }];
 }
 
