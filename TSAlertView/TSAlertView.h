@@ -76,19 +76,11 @@ extern CGFloat kTSAlertView_ColumnMargin;
 
 @property (nonatomic, assign) TSAlertViewStyle style;
 
-#if __has_feature(objc_arc)
-@property (nonatomic, weak) id<TSAlertViewDelegate> delegate;
+@property (nonatomic, unsafe_unretained) id<TSAlertViewDelegate> delegate;
 @property (nonatomic, strong) UIImage* backgroundImage;
-@property (nonatomic, weak, readonly) UITextField* inputTextField;
-@property (nonatomic, weak, readonly) UIActivityIndicatorView* activityIndicatorView;
+@property (nonatomic, strong, readonly) UITextField* inputTextField;
+@property (nonatomic, strong, readonly) UIActivityIndicatorView* activityIndicatorView;
 @property (nonatomic, strong) id userInfo;
-#else
-@property (nonatomic, assign) id<TSAlertViewDelegate> delegate;
-@property (nonatomic, retain) UIImage* backgroundImage;
-@property (nonatomic, assign, readonly) UITextField* inputTextField;
-@property (nonatomic, assign, readonly) UIActivityIndicatorView* activityIndicatorView;
-@property (nonatomic, retain) id userInfo;
-#endif
 
 - (id)initWithTitle:(NSString *)title 
             message:(NSString *)message 
@@ -101,8 +93,6 @@ extern CGFloat kTSAlertView_ColumnMargin;
 - (void) dismissWithClickedButtonIndex:(NSInteger)buttonIndex 
                               animated:(BOOL)animated;
 - (void) show;
-
-- (UIWindow*) window NS_RETURNS_RETAINED;
 
 @end
 

@@ -7,7 +7,7 @@
 #import "TSAlertView.h"
 #import "TSAlertView+Protected.h"
 #import <QuartzCore/QuartzCore.h>
-#import "SynthesizeSingleton.h"
+#import "CWLSynthesizeSingleton.h"
 #import "MKDUIKeyboardInfo.h"
 //
 #import "TSAlertOverlayWindow.h"
@@ -367,23 +367,9 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 	[self.backgroundImage drawInRect: rect];
 }
 
-- (void)dealloc 
-{
+- (void)dealloc {
   [[NSNotificationCenter defaultCenter] removeObserver: self ];
-  
-#if __has_feature(objc_arc) == 0
-	[_backgroundImage release];
-	[_buttons release];
-	[_titleLabel release];
-	[_messageLabel release];
-	[_messageTextView release];
-	[_messageTextViewMaskImageView release];
-  [_userInfo release];
-	
-	//NSLog( @"TSAlertView: TSAlertOverlayWindow dealloc" );
-	
   [super dealloc];
-#endif
 }
 
 - (void) TSAlertView_commonInit
@@ -588,8 +574,6 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
             buttonIndex:buttonIndex 
                animated:animated];
 }
-
-- (UIWindow*) window { return [super window]; }
 
 - (void) releaseWindow: (int) buttonIndex
 {

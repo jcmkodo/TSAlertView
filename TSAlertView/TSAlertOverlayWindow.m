@@ -20,11 +20,8 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 @end
 
 @interface TSAlertOverlayWindow ()
-#if __has_feature(objc_arc)
-//@property (nonatomic, weak) NSMutableArray *stack;
-#else
-@property (nonatomic, retain) NSMutableArray *stack;
-#endif
+@property (nonatomic, strong) NSMutableArray *stack;
+
 - (void) hideAlert:(TSAlertView*) alert 
        buttonIndex:(NSNumber*) num 
          finalStep:(BOOL)final

@@ -13,13 +13,8 @@
 @class TSAlertViewController, TSAlertViewGradientView;
 
 @interface TSAlertOverlayWindow : UIWindow
-#if __has_feature(objc_arc)
 @property (nonatomic, strong) UIWindow* oldKeyWindow;
-@property (nonatomic, weak) UIView *gradientView;
-#else
-@property (nonatomic, retain) UIWindow* oldKeyWindow;
-@property (nonatomic, assign) UIView *gradientView;
-#endif
+@property (nonatomic, strong) UIView *gradientView;
 
 + (TSAlertOverlayWindow*) sharedTSAlertOverlayWindow;
 
