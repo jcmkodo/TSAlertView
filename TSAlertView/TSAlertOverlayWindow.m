@@ -136,10 +136,8 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
          alert.center = alert.window.center;
        }
      } completion:^(BOOL finished) {
-       if (finished) {
-         [alert pulse];
-         [self checkStackAnimated:YES];          
-       }
+       [alert pulse];
+       [self checkStackAnimated:YES];          
      }];
   }
 }
@@ -166,14 +164,12 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
        alert.alpha = 0;
        
      } completion:^(BOOL finished) {
-       if (finished) {
-         // delegate call
-         if ([alert.delegate respondsToSelector:@selector(alertView:didDismissWithButtonIndex:)]) {
-           [alert.delegate alertView:alert didDismissWithButtonIndex:[num unsignedIntegerValue]];
-         }
-         [alert removeFromSuperview];
-         [self checkStackAnimated:YES];    
+       // delegate call
+       if ([alert.delegate respondsToSelector:@selector(alertView:didDismissWithButtonIndex:)]) {
+         [alert.delegate alertView:alert didDismissWithButtonIndex:[num unsignedIntegerValue]];
        }
+       [alert removeFromSuperview];
+       [self checkStackAnimated:YES];    
      }];    
     
   } else {
@@ -185,8 +181,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
      {
        [TSAlertOverlayWindow sharedTSAlertOverlayWindow].gradientView.alpha = 0;
      } completion:^(BOOL finished) {
-       if (finished) 
-         [self hideAlert:alert buttonIndex:num finalStep:YES animated:YES];
+       [self hideAlert:alert buttonIndex:num finalStep:YES animated:YES];
      }];
   }
 }
