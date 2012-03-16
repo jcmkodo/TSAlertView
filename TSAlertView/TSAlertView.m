@@ -368,7 +368,8 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 }
 
 - (void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver: self ];
+  [self cleanup];
+
   [super dealloc];
 }
 
