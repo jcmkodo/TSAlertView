@@ -20,7 +20,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 @end
 
 @interface TSAlertOverlayWindow ()
-@property (nonatomic, strong) NSMutableArray *stack;
+@property (nonatomic, STRONG_OR_RETAIN) NSMutableArray *stack;
 
 - (void) hideAlert:(TSAlertViewBase*) alert 
        buttonIndex:(NSNumber*) num 
@@ -35,14 +35,9 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 + (TSAlertOverlayWindow*) sharedTSAlertOverlayWindow {
   NSAssert([NSThread isMainThread], @"Not main thread");
-  
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    if (!__sharedWindow) {
-      __sharedWindow = [[TSAlertOverlayWindow alloc] init];
-    }
-  });
-  
+  if (!__sharedWindow) {
+    __sharedWindow = [[TSAlertOverlayWindow alloc] init];
+  }
   return __sharedWindow;
 }
 

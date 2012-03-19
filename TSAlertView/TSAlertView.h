@@ -6,6 +6,18 @@
 
 #import <UIKit/UIKit.h>
 
+#ifndef __has_feature      // Optional.
+#define __has_feature(x) 0 // Compatibility with non-clang compilers.
+#endif
+
+#if __has_feature(objc_arc)
+#define STRONG_OR_RETAIN strong
+#define WEAK_OR_ASSIGN unsafe_unretained
+#else
+#define STRONG_OR_RETAIN retain
+#define WEAK_OR_ASSIGN assign
+#endif
+
 typedef enum 
 {
 	TSAlertViewButtonLayoutNormal,
@@ -59,7 +71,7 @@ extern CGFloat kTSAlertView_ColumnMargin;
 }
 @property (nonatomic, assign) CGFloat width;
 @property (nonatomic, assign) CGFloat maxHeight;
-@property (nonatomic, strong) UIImage* backgroundImage;
+@property (nonatomic, STRONG_OR_RETAIN) UIImage* backgroundImage;
 @property (nonatomic, readonly, getter=isVisible) BOOL visible;
 
 + (void) setAppearanceProxy:(TSAlertViewAppearanceProxy*) proxy;
@@ -92,10 +104,10 @@ extern CGFloat kTSAlertView_ColumnMargin;
 
 @property (nonatomic, assign) TSAlertViewStyle style;
 
-@property (nonatomic, unsafe_unretained) id <TSAlertViewDelegate> delegate;
-@property (nonatomic, strong, readonly) UITextField* inputTextField;
-@property (nonatomic, strong, readonly) UIActivityIndicatorView* activityIndicatorView;
-@property (nonatomic, strong) id userInfo;
+@property (nonatomic, WEAK_OR_ASSIGN) id <TSAlertViewDelegate> delegate;
+@property (nonatomic, STRONG_OR_RETAIN, readonly) UITextField* inputTextField;
+@property (nonatomic, STRONG_OR_RETAIN, readonly) UIActivityIndicatorView* activityIndicatorView;
+@property (nonatomic, STRONG_OR_RETAIN) id userInfo;
 
 - (id)initWithTitle:(NSString *)title 
             message:(NSString *)message 
