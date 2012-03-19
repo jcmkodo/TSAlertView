@@ -9,7 +9,6 @@
 @interface TSAlertViewBase ()
 - (void) pulse;
 - (CGSize) recalcSizeAndLayout: (BOOL) layout;
-- (void) TSAlertView_commonInit;
 @end
 
 @interface TSAlertView ()

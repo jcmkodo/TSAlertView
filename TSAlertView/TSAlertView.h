@@ -65,6 +65,7 @@ extern CGFloat kTSAlertView_ColumnMargin;
 + (void) setAppearanceProxy:(TSAlertViewAppearanceProxy*) proxy;
 + (TSAlertViewAppearanceProxy*) appearanceProxy;
 
+- (void) TSAlertView_commonInit;
 - (void) show;
 
 @end // TSAlertViewBase
