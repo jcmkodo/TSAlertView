@@ -4,7 +4,6 @@
 //  Created by Nick Hodapp aka Tom Swift on 1/19/11.
 //
 
-
 #import <UIKit/UIKit.h>
 
 typedef enum 
@@ -52,9 +51,24 @@ extern CGFloat kTSAlertView_ColumnMargin;
 
 @end
 
-@interface TSAlertView : UIView
+/**
+ @class Base class for any alert view widgets.
+ Has just a background and show/hide anims
+ */
+@interface TSAlertViewBase : UIView { 
+  UIImage *_backgroundImage;
+}
+@property (nonatomic, assign) CGFloat width;
+@property (nonatomic, assign) CGFloat maxHeight;
+@property (nonatomic, strong) UIImage* backgroundImage;
+@property (nonatomic, readonly, getter=isVisible) BOOL visible;
+
+- (void) show;
+
+@end // TSAlertViewBase
+
+@interface TSAlertView : TSAlertViewBase
 {
-	UIImage*				_backgroundImage;
 	UILabel*				_titleLabel;
 	UILabel*				_messageLabel;
 	UITextView*				_messageTextView;
@@ -67,17 +81,13 @@ extern CGFloat kTSAlertView_ColumnMargin;
 @property (nonatomic) NSInteger cancelButtonIndex;
 @property (nonatomic, readonly) NSInteger firstOtherButtonIndex;
 @property (nonatomic, readonly) NSInteger numberOfButtons;
-@property (nonatomic, readonly, getter=isVisible) BOOL visible;
 
 @property (nonatomic, assign) TSAlertViewButtonLayout buttonLayout;
-@property (nonatomic, assign) CGFloat width;
-@property (nonatomic, assign) CGFloat maxHeight;
 @property (nonatomic, assign) BOOL usesMessageTextView;
 
 @property (nonatomic, assign) TSAlertViewStyle style;
 
 @property (nonatomic, unsafe_unretained) id<TSAlertViewDelegate> delegate;
-@property (nonatomic, strong) UIImage* backgroundImage;
 @property (nonatomic, strong, readonly) UITextField* inputTextField;
 @property (nonatomic, strong, readonly) UIActivityIndicatorView* activityIndicatorView;
 @property (nonatomic, strong) id userInfo;
@@ -92,7 +102,6 @@ extern CGFloat kTSAlertView_ColumnMargin;
 - (NSString *) buttonTitleAtIndex:(NSInteger)buttonIndex;
 - (void) dismissWithClickedButtonIndex:(NSInteger)buttonIndex 
                               animated:(BOOL)animated;
-- (void) show;
 
 @end
 

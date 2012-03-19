@@ -22,7 +22,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 @interface TSAlertOverlayWindow ()
 @property (nonatomic, strong) NSMutableArray *stack;
 
-- (void) hideAlert:(TSAlertView*) alert 
+- (void) hideAlert:(TSAlertViewBase*) alert 
        buttonIndex:(NSNumber*) num 
          finalStep:(BOOL)final
           animated:(BOOL)anim;
@@ -106,7 +106,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 #pragma mark -
 #pragma mark
 
-- (void) push:(TSAlertView*) alert animated:(BOOL)anim {
+- (void) push:(TSAlertViewBase*) alert animated:(BOOL)anim {
   // current top of the stack...
   TSAlertView *top = [self.stack top];
   // add the new alert...
@@ -136,13 +136,13 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
          alert.center = alert.window.center;
        }
      } completion:^(BOOL finished) {
-       [alert doPulse];
+       [alert pulse];
        [self checkStackAnimated:YES];          
      }];
   }
 }
 
-- (void) hideAlert:(TSAlertView*) alert 
+- (void) hideAlert:(TSAlertViewBase*) alert 
        buttonIndex:(NSNumber*) num 
          finalStep:(BOOL)final
           animated:(BOOL)animated
@@ -152,9 +152,13 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
   [context autorelease];
 #endif
   
+  id alertObj = alert;
+  
   if (final) {
     // final step - hide the alert itself
-    [alert.inputTextField resignFirstResponder];
+    if ([alert respondsToSelector:@selector(inputTextField)]) {
+      [[alertObj inputTextField] resignFirstResponder];
+    }
     
     [UIView animateWithDuration:animated ? kAlertBackgroundAnimDuration : 0
                           delay:0 
@@ -165,9 +169,12 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
        
      } completion:^(BOOL finished) {
        // delegate call
-       if ([alert.delegate respondsToSelector:@selector(alertView:didDismissWithButtonIndex:)]) {
-         [alert.delegate alertView:alert didDismissWithButtonIndex:[num unsignedIntegerValue]];
+       if ([alertObj respondsToSelector:@selector(delegate)]) {
+         if ([[alertObj delegate] respondsToSelector:@selector(alertView:didDismissWithButtonIndex:)]) {
+           [[alertObj delegate] alertView:alertObj didDismissWithButtonIndex:[num unsignedIntegerValue]];
+         }
        }
+       
        [alert removeFromSuperview];
        [self checkStackAnimated:YES];    
      }];    
@@ -237,7 +244,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 - (void) drawRect: (CGRect) rect
 {
 #define kLocations (2)
-  CGFloat locations[kLocations]	= { 0.0, 1.0 	};
+  CGFloat locations[kLocations]	= { 0.0, 1.0 };
 	CGFloat components[] = {	
     0, 0, 0, 0.0,
 		0, 0, 0, 0.7	

@@ -15,17 +15,72 @@
 const NSTimeInterval kAlertBoxAnimDuration = 0.1;
 const NSTimeInterval kAlertBackgroundAnimDuration = 0.2;
 
+static const CGFloat kPulseAnimScale1 = 0.6;
+static const CGFloat kPulseAnimScale2 = 1.1/0.6;
+static const CGFloat kPulseAnimScale3 = 0.9/1.1;
+static const CGFloat kPulseAnimScale4 = 1.0/0.9;
+
 CGFloat kTSAlertView_LeftMargin	= 10.0;
 CGFloat kTSAlertView_TopMargin	= 7.0;
 CGFloat kTSAlertView_BottomMargin = 7.0;
 CGFloat kTSAlertView_RowMargin	= 7.0;
 CGFloat kTSAlertView_ColumnMargin = 10.0;
 
+@implementation TSAlertViewBase
+@synthesize backgroundImage=_backgroundImage, width=_width, maxHeight=_maxHeight;
+
+- (void) pulse {
+  // pulse animation thanks to:  http://delackner.com/blog/2009/12/mimicking-uialertviews-animated-transition/
+  
+  [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
+    self.alpha = 1;
+    self.transform = CGAffineTransformScale(self.transform, kPulseAnimScale1, kPulseAnimScale1);
+  } completion:^(BOOL finished) {
+    [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
+      self.transform = CGAffineTransformScale(self.transform, kPulseAnimScale2, kPulseAnimScale2);
+    } completion:^(BOOL finished) {
+      [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
+        self.transform = CGAffineTransformScale(self.transform, kPulseAnimScale3, kPulseAnimScale3);
+      } completion:^(BOOL finished) {}];
+    }];
+  }];
+}
+
+- (void) show { [ALERT_CONTROLLER push:self animated:YES]; }
+
+- (BOOL) isVisible { return self.superview != nil; }
+
+- (void) setWidth:(CGFloat) w {
+	if ( w <= 0 )
+		w = 284;
+	_width = MAX( w, self.backgroundImage.size.width );
+}
+
+- (CGFloat) width {
+	if ( nil == self.superview )
+		return _width;
+	CGFloat maxWidth = self.superview.bounds.size.width - 20;
+	return MIN( _width, maxWidth );
+}
+
+- (void) setMaxHeight:(CGFloat) h {
+	if ( h <= 0 )
+		h = 358;
+	_maxHeight = MIN( h, 284 );
+}
+
+- (CGFloat) maxHeight {
+	if ( nil == self.superview )
+		return _maxHeight;
+	return MIN( _maxHeight, self.superview.bounds.size.height - 20 );
+}
+
+@end
+
 @implementation TSAlertView
 
 @synthesize delegate=_delegate, cancelButtonIndex=_cancelButtonIndex, buttonLayout=_buttonLayout;
-@synthesize firstOtherButtonIndex=_firstOtherButtonIndex, width=_width, maxHeight=_maxHeight;
-@synthesize usesMessageTextView=_usesMessageTextView, backgroundImage=_backgroundImage;
+@synthesize firstOtherButtonIndex=_firstOtherButtonIndex, usesMessageTextView=_usesMessageTextView;
 @synthesize style=_style, activityIndicatorView=_activityIndicatorView, userInfo=_userInfo;
 
 - (id) init {
@@ -377,30 +432,6 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 	_firstOtherButtonIndex = -1;
 }
 
-- (void) setWidth:(CGFloat) w {
-	if ( w <= 0 )
-		w = 284;
-	_width = MAX( w, self.backgroundImage.size.width );
-}
-
-- (CGFloat) width {
-	if ( nil == self.superview )
-		return _width;
-	CGFloat maxWidth = self.superview.bounds.size.width - 20;
-	return MIN( _width, maxWidth );
-}
-
-- (void) setMaxHeight:(CGFloat) h {
-	if ( h <= 0 )
-		h = 358;
-	_maxHeight = MIN( h, 284 );
-}
-
-- (CGFloat) maxHeight {
-	if ( nil == self.superview )
-		return _maxHeight;
-	return MIN( _maxHeight, self.superview.bounds.size.height - 20 );
-}
 
 - (void) setStyle:(TSAlertViewStyle)newStyle
 {
@@ -573,10 +604,6 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 	}
 }
 
-- (void) show {
-  [ALERT_CONTROLLER push:self animated:YES];
-}
-
 #pragma mark -
 #pragma mark Properties
 
@@ -659,11 +686,7 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 	return _titleLabel;
 }
 
-- (BOOL) isVisible {
-	return self.superview != nil;
-}
-
-- (void) doPulse
+- (void) pulse
 {
   if ( self.style == TSAlertViewStyleInput )
   {
@@ -671,10 +694,11 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
     [self.inputTextField becomeFirstResponder];
   }
   
-  [self pulse];
+  [super pulse];
 }
 
 @end
+
 
 
 

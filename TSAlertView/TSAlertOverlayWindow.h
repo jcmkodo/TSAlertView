@@ -18,9 +18,9 @@
 
 + (TSAlertOverlayWindow*) sharedTSAlertOverlayWindow;
 
-- (void) push:(TSAlertView*) alert 
+- (void) push:(TSAlertViewBase*) alert 
      animated:(BOOL)anim;
-- (void) pop:(TSAlertView*) alert 
+- (void) pop:(TSAlertViewBase*) alert 
  buttonIndex:(NSUInteger) index 
     animated:(BOOL) anim;
 

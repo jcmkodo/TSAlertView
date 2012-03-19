@@ -6,6 +6,10 @@
 //  Copyright (c) 2012 mkodo. All rights reserved.
 //
 
+@interface TSAlertViewBase ()
+- (void) pulse;
+@end
+
 @interface TSAlertView ()
 @property (nonatomic, readonly) NSMutableArray *buttons;
 @property (nonatomic, readonly) UILabel *titleLabel;
@@ -25,6 +29,5 @@
 - (void) onKeyboardDidShow: (NSNotification*) note;
 - (void) onKeyboardWillHide: (NSNotification*) note;
 - (void) onButtonPress: (id) sender;
-- (void) doPulse;
 
 @end
