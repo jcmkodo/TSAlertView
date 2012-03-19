@@ -136,7 +136,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
          alert.center = alert.window.center;
        }
      } completion:^(BOOL finished) {
-       [alert pulse];
+       [alert doPulse];
        [self checkStackAnimated:YES];          
      }];
   }

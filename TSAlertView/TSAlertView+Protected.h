@@ -25,6 +25,6 @@
 - (void) onKeyboardDidShow: (NSNotification*) note;
 - (void) onKeyboardWillHide: (NSNotification*) note;
 - (void) onButtonPress: (id) sender;
-- (void) pulse;
+- (void) doPulse;
 
 @end

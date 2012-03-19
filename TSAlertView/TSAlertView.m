@@ -21,17 +21,6 @@ CGFloat kTSAlertView_BottomMargin = 7.0;
 CGFloat kTSAlertView_RowMargin	= 7.0;
 CGFloat kTSAlertView_ColumnMargin = 10.0;
 
-const CGFloat kScale1 = 0.6;
-const CGFloat kScale2 = 1.1/0.6;
-const CGFloat kScale3 = 0.9/1.1;
-const CGFloat kScale4 = 1.0/0.9;
-
-static NSString *const kAlertAnimPulse1   = @"PulsePart1";
-static NSString *const kAlertAnimPulse2   = @"PulsePart2";
-static NSString *const kAlertAnimShow     = @"Show";
-static NSString *const kAlertAnimDismiss1 = @"Dismiss1";
-static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
-
 @implementation TSAlertView
 
 @synthesize delegate=_delegate, cancelButtonIndex=_cancelButtonIndex, buttonLayout=_buttonLayout;
@@ -674,7 +663,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 	return self.superview != nil;
 }
 
-- (void) pulse
+- (void) doPulse
 {
   if ( self.style == TSAlertViewStyleInput )
   {
@@ -682,32 +671,7 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
     [self.inputTextField becomeFirstResponder];
   }
   
-	// pulse animation thanks to:  http://delackner.com/blog/2009/12/mimicking-uialertviews-animated-transition/
-  
-  [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
-    self.alpha = 1;
-    self.transform = CGAffineTransformScale(self.transform, kScale1, kScale1);
-  } completion:^(BOOL finished) {
-    [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
-      self.transform = CGAffineTransformScale(self.transform, kScale2, kScale2);
-    } completion:^(BOOL finished) {
-      [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
-        self.transform = CGAffineTransformScale(self.transform, kScale3, kScale3);
-      } completion:^(BOOL finished) {
-        [UIView animateWithDuration:1.0/7.5 animations:^{
-          // identity on size...
-          TSAlertOverlayWindow *window = (TSAlertOverlayWindow*) self.window;
-          self.transform = window.oldKeyWindow.rootViewController.view.transform;
-          [UIView commitAnimations];    
-          if ( self.style == TSAlertViewStyleInput )
-          {
-            [self layoutSubviews];
-            [self.inputTextField becomeFirstResponder];
-          }
-        }];
-      }];
-    }];
-  }];
+  [self pulse];
 }
 
 @end
