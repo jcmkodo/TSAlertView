@@ -8,6 +8,8 @@
 
 @interface TSAlertViewBase ()
 - (void) pulse;
+- (CGSize) recalcSizeAndLayout: (BOOL) layout;
+- (void) TSAlertView_commonInit;
 @end
 
 @interface TSAlertView ()
@@ -16,14 +18,12 @@
 @property (nonatomic, readonly) UILabel *messageLabel;
 @property (nonatomic, readonly) UITextView *messageTextView;
 
-- (void) TSAlertView_commonInit;
 - (void) releaseWindow: (int) buttonIndex;
 - (CGSize) titleLabelSize;
 - (CGSize) messageLabelSize;
 - (CGSize) inputTextFieldSize;
 - (CGSize) buttonsAreaSize_Stacked;
 - (CGSize) buttonsAreaSize_SideBySide;
-- (CGSize) recalcSizeAndLayout: (BOOL) layout;
 - (UIImageView*) messageTextViewMaskView;
 //
 - (void) onKeyboardDidShow: (NSNotification*) note;

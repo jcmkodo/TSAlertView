@@ -35,9 +35,14 @@ static NSString *const kAlertAnimDismiss2 = @"Dismiss2";
 
 + (TSAlertOverlayWindow*) sharedTSAlertOverlayWindow {
   NSAssert([NSThread isMainThread], @"Not main thread");
-  if (!__sharedWindow) {
-    __sharedWindow = [[TSAlertOverlayWindow alloc] init];
-  }
+  
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    if (!__sharedWindow) {
+      __sharedWindow = [[TSAlertOverlayWindow alloc] init];
+    }
+  });
+  
   return __sharedWindow;
 }
 

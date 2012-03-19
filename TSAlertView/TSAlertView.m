@@ -20,14 +20,23 @@ static const CGFloat kPulseAnimScale2 = 1.1/0.6;
 static const CGFloat kPulseAnimScale3 = 0.9/1.1;
 static const CGFloat kPulseAnimScale4 = 1.0/0.9;
 
-CGFloat kTSAlertView_LeftMargin	= 10.0;
-CGFloat kTSAlertView_TopMargin	= 7.0;
+static TSAlertViewAppearanceProxy *__appearanceProxy = nil;
+
+CGFloat kTSAlertView_LeftMargin   = 10.0;
+CGFloat kTSAlertView_TopMargin    = 7.0;
 CGFloat kTSAlertView_BottomMargin = 7.0;
-CGFloat kTSAlertView_RowMargin	= 7.0;
+CGFloat kTSAlertView_RowMargin    = 7.0;
 CGFloat kTSAlertView_ColumnMargin = 10.0;
 
 @implementation TSAlertViewBase
 @synthesize backgroundImage=_backgroundImage, width=_width, maxHeight=_maxHeight;
+
++ (void) setAppearanceProxy:(TSAlertViewAppearanceProxy *)proxy {
+  NSAssert([NSThread isMainThread], @"Not main thread");
+  AtomicRetainedSetToFrom(__appearanceProxy, proxy);
+}
+
++ (TSAlertViewAppearanceProxy*) appearanceProxy { return AtomicAutoreleasedGet(__appearanceProxy); }
 
 - (void) pulse {
   // pulse animation thanks to:  http://delackner.com/blog/2009/12/mimicking-uialertviews-animated-transition/
@@ -44,6 +53,20 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
       } completion:^(BOOL finished) {}];
     }];
   }];
+}
+
+- (void) willMoveToSuperview:(UIView *)newSuperview {
+  if (newSuperview) {
+    [[TSAlertViewBase appearanceProxy] alertViewWillShow:self];
+    // may need to redo layout
+    [self recalcSizeAndLayout:YES];
+  }
+  [super willMoveToSuperview:newSuperview];
+}
+
+- (void) willMoveToWindow:(UIWindow *)newWindow {
+  [[TSAlertViewBase appearanceProxy] alertView:self addedToWindow:newWindow];
+  [super willMoveToWindow:newWindow];
 }
 
 - (void) show { [ALERT_CONTROLLER push:self animated:YES]; }
@@ -75,14 +98,6 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 	return MIN( _maxHeight, self.superview.bounds.size.height - 20 );
 }
 
-@end
-
-@implementation TSAlertView
-
-@synthesize delegate=_delegate, cancelButtonIndex=_cancelButtonIndex, buttonLayout=_buttonLayout;
-@synthesize firstOtherButtonIndex=_firstOtherButtonIndex, usesMessageTextView=_usesMessageTextView;
-@synthesize style=_style, activityIndicatorView=_activityIndicatorView, userInfo=_userInfo;
-
 - (id) init {
 	if ( ( self = [super init] ) ) {
 		[self TSAlertView_commonInit];
@@ -105,6 +120,47 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 	}
 	return self;
 }
+
+- (CGSize) sizeThatFits: (CGSize) unused {
+	CGSize s = [self recalcSizeAndLayout: NO];
+	return s;
+}
+
+- (void) TSAlertView_commonInit
+{
+	self.backgroundColor = [UIColor clearColor];
+	self.autoresizingMask = (
+                           UIViewAutoresizingFlexibleLeftMargin | 
+                           UIViewAutoresizingFlexibleRightMargin | 
+                           UIViewAutoresizingFlexibleTopMargin | 
+                           UIViewAutoresizingFlexibleBottomMargin
+                           );
+  self.clipsToBounds = YES;
+	
+	// defaults:
+	self.width = 0; // set to default
+	self.maxHeight = 0; // set to default
+}
+
+- (CGSize) recalcSizeAndLayout: (BOOL) layout {
+  CGSize ret = CGSizeMake(self.width, self.maxHeight);
+  return ret;
+}
+
+- (void) drawRect:(CGRect)rect {
+	[self.backgroundImage drawInRect: rect];
+}
+
+@end
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+@implementation TSAlertView
+
+@synthesize delegate=_delegate;
+@synthesize cancelButtonIndex=_cancelButtonIndex, buttonLayout=_buttonLayout;
+@synthesize firstOtherButtonIndex=_firstOtherButtonIndex, usesMessageTextView=_usesMessageTextView;
+@synthesize style=_style, activityIndicatorView=_activityIndicatorView, userInfo=_userInfo;
 
 - (id) initWithTitle: (NSString *) t message: (NSString *) m delegate: (id) d cancelButtonTitle: (NSString *) cancelButtonTitle otherButtonTitles: (NSString *) otherButtonTitles, ...
 {
@@ -141,12 +197,6 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 	}
 	
 	return self;
-}
-
-- (CGSize) sizeThatFits: (CGSize) unused 
-{
-	CGSize s = [self recalcSizeAndLayout: NO];
-	return s;
 }
 
 - (void) onButtonPress: (id) sender
@@ -407,10 +457,6 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 	[self recalcSizeAndLayout: YES];
 }
 
-- (void) drawRect:(CGRect)rect {
-	[self.backgroundImage drawInRect: rect];
-}
-
 - (void)dealloc {
   [self cleanup];
 
@@ -419,19 +465,13 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 
 - (void) TSAlertView_commonInit
 {
-	self.backgroundColor = [UIColor clearColor];
-	self.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin; 
-  self.clipsToBounds = YES;
-	
-	// defaults:
+  [super TSAlertView_commonInit];
+  
 	self.style = TSAlertViewStyleNormal;
-	self.width = 0; // set to default
-	self.maxHeight = 0; // set to default
 	self.buttonLayout = TSAlertViewButtonLayoutNormal;
 	self.cancelButtonIndex = -1;
 	_firstOtherButtonIndex = -1;
 }
-
 
 - (void) setStyle:(TSAlertViewStyle)newStyle
 {
@@ -699,7 +739,23 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 
 @end
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+@implementation TSAlertViewAppearanceProxy
+
+- (void) alertViewWillShow:(TSAlertViewBase*)alertView {
+  NSLog(@"Subclass me!");
+  [self doesNotRecognizeSelector:_cmd];
+}
+
+- (void) alertView:(TSAlertViewBase*)alertView 
+     addedToWindow:(UIWindow*)window 
+{
+  NSLog(@"Subclass me!");
+  [self doesNotRecognizeSelector:_cmd];
+}
+
+@end
 
 
 

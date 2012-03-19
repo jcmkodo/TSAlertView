@@ -30,8 +30,7 @@ extern CGFloat kTSAlertView_BottomMargin;
 extern CGFloat kTSAlertView_RowMargin;
 extern CGFloat kTSAlertView_ColumnMargin;
 
-@class TSAlertViewController;
-@class TSAlertView;
+@class TSAlertViewController, TSAlertView, TSAlertViewAppearanceProxy;
 
 @protocol TSAlertViewDelegate <NSObject>
 @optional
@@ -63,9 +62,14 @@ extern CGFloat kTSAlertView_ColumnMargin;
 @property (nonatomic, strong) UIImage* backgroundImage;
 @property (nonatomic, readonly, getter=isVisible) BOOL visible;
 
++ (void) setAppearanceProxy:(TSAlertViewAppearanceProxy*) proxy;
++ (TSAlertViewAppearanceProxy*) appearanceProxy;
+
 - (void) show;
 
 @end // TSAlertViewBase
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 @interface TSAlertView : TSAlertViewBase
 {
@@ -87,7 +91,7 @@ extern CGFloat kTSAlertView_ColumnMargin;
 
 @property (nonatomic, assign) TSAlertViewStyle style;
 
-@property (nonatomic, unsafe_unretained) id<TSAlertViewDelegate> delegate;
+@property (nonatomic, unsafe_unretained) id <TSAlertViewDelegate> delegate;
 @property (nonatomic, strong, readonly) UITextField* inputTextField;
 @property (nonatomic, strong, readonly) UIActivityIndicatorView* activityIndicatorView;
 @property (nonatomic, strong) id userInfo;
@@ -105,6 +109,12 @@ extern CGFloat kTSAlertView_ColumnMargin;
 
 @end
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+@interface TSAlertViewAppearanceProxy : NSObject
+- (void) alertViewWillShow:(TSAlertViewBase*)alertView;
+- (void) alertView:(TSAlertViewBase*)alertView 
+     addedToWindow:(UIWindow*)window;
+@end
 
 
