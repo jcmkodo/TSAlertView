@@ -79,6 +79,9 @@ extern CGFloat kTSAlertView_ColumnMargin;
 
 - (void) TSAlertView_commonInit;
 - (void) show;
+- (void) dismissAnimated:(BOOL) animated;
+
+- (void) didCompleteDisplayAnimations;
 
 @end // TSAlertViewBase
 

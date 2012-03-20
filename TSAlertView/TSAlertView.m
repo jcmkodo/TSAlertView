@@ -45,15 +45,25 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
     self.alpha = 1;
     self.transform = CGAffineTransformScale(self.transform, kPulseAnimScale1, kPulseAnimScale1);
   } completion:^(BOOL finished) {
-    [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
-      self.transform = CGAffineTransformScale(self.transform, kPulseAnimScale2, kPulseAnimScale2);
-    } completion:^(BOOL finished) {
+    if (finished) {
       [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
-        self.transform = CGAffineTransformScale(self.transform, kPulseAnimScale3, kPulseAnimScale3);
-      } completion:^(BOOL finished) {}];
-    }];
+        self.transform = CGAffineTransformScale(self.transform, kPulseAnimScale2, kPulseAnimScale2);
+      } completion:^(BOOL finished) {
+        if (finished) {
+          [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
+            self.transform = CGAffineTransformScale(self.transform, kPulseAnimScale3, kPulseAnimScale3);
+          } completion:^(BOOL finished) {
+            if (finished) {
+              [self didCompleteDisplayAnimations];
+            }
+          }];
+        }
+      }];
+    }
   }];
 }
+
+- (void) didCompleteDisplayAnimations {}
 
 - (void) willMoveToSuperview:(UIView *)newSuperview {
   if (newSuperview) {
@@ -77,6 +87,12 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 	if ( w <= 0 )
 		w = 284;
 	_width = MAX( w, self.backgroundImage.size.width );
+}
+
+- (void) dismissAnimated:(BOOL) animated {
+  [ALERT_CONTROLLER pop:self 
+            buttonIndex:0 
+               animated:animated];
 }
 
 - (CGFloat) width {
