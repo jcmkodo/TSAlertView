@@ -12,14 +12,11 @@
 @end
 
 @interface TSAlertView ()
-@property (nonatomic, readonly) NSMutableArray *buttons;
-@property (nonatomic, readonly) UILabel *titleLabel;
-@property (nonatomic, readonly) UILabel *messageLabel;
-@property (nonatomic, readonly) UITextView *messageTextView;
 
 - (void) releaseWindow: (int) buttonIndex;
 - (CGSize) titleLabelSize;
 - (CGSize) messageLabelSize;
+- (CGSize) imageSize;
 - (CGSize) inputTextFieldSize;
 - (CGSize) buttonsAreaSize_Stacked;
 - (CGSize) buttonsAreaSize_SideBySide;

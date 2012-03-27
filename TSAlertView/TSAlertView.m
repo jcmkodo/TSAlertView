@@ -81,6 +81,8 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 
 - (void) show { [ALERT_CONTROLLER push:self animated:YES]; }
 
+- (void) dismiss { [self dismissAnimated:YES]; }
+
 - (BOOL) isVisible { return self.superview != nil; }
 
 - (void) setWidth:(CGFloat) w {
@@ -170,15 +172,20 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 @end
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#pragma mark -
 
 @implementation TSAlertView
 
-@synthesize delegate=_delegate;
+@synthesize delegate=_delegate, imageView=_imageView;
 @synthesize cancelButtonIndex=_cancelButtonIndex, buttonLayout=_buttonLayout;
 @synthesize firstOtherButtonIndex=_firstOtherButtonIndex, usesMessageTextView=_usesMessageTextView;
 @synthesize style=_style, activityIndicatorView=_activityIndicatorView, userInfo=_userInfo;
 
-- (id) initWithTitle: (NSString *) t message: (NSString *) m delegate: (id) d cancelButtonTitle: (NSString *) cancelButtonTitle otherButtonTitles: (NSString *) otherButtonTitles, ...
+- (id) initWithTitle: (NSString *) t 
+             message: (NSString *) m 
+            delegate: (id) d 
+   cancelButtonTitle: (NSString *) cancelButtonTitle 
+   otherButtonTitles: (NSString *) otherButtonTitles, ...
 {
 	if ( (self = [super init] ) ) // will call into initWithFrame, thus TSAlertView_commonInit is called
 	{
@@ -241,6 +248,7 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
   
   CGFloat maxWidth = self.width - (kTSAlertView_LeftMargin * 2);
   
+  CGSize  imageSize = [self imageSize];
   CGSize  titleLabelSize = [self titleLabelSize];
   CGSize  messageViewSize = [self messageLabelSize];
   CGSize  inputTextFieldSize = [self inputTextFieldSize];
@@ -265,15 +273,17 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
       break;
   }
   
-  CGFloat totalHeight = (
-                         kTSAlertView_TopMargin + 
-                         ( titleLabelSize.height ? titleLabelSize.height : 0 ) +      // title
-                         kTSAlertView_RowMargin +   // always a row margin below title
-                         ( messageViewSize.height ? messageViewSize.height + kTSAlertView_RowMargin : 0 ) +
-                         ( accessorySize.height ? accessoryHeight + kTSAlertView_RowMargin : 0 ) + // input
-                         buttonsAreaSize.height + 
-                         kTSAlertView_BottomMargin
-                         );
+  CGFloat totalHeight = 0;
+  
+  // easier to debug as a big ugly list...
+  totalHeight += kTSAlertView_TopMargin;
+  totalHeight += imageSize.height + ( imageSize.height ? kTSAlertView_RowMargin : 0 );  // image
+  totalHeight += ( titleLabelSize.height ? titleLabelSize.height : 0 );                 // title
+  totalHeight += ( imageSize.height || titleLabelSize.height ) ? kTSAlertView_RowMargin : 0;
+  totalHeight += ( messageViewSize.height ? messageViewSize.height + kTSAlertView_RowMargin : 0 );
+  totalHeight += ( accessorySize.height ? accessoryHeight + kTSAlertView_RowMargin : 0 );
+  totalHeight += buttonsAreaSize.height;
+  totalHeight += kTSAlertView_BottomMargin;
   
   if ( totalHeight > self.maxHeight )
   {
@@ -292,8 +302,16 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
   
   if ( layout )
   {
-    // title
     CGFloat y = kTSAlertView_TopMargin;
+
+    // image
+    if ( self.imageView.image ) {
+      self.imageView.frame = CGRectMake(0, y, self.bounds.size.width, imageSize.height);
+      [self addSubview:self.imageView];
+      y += imageSize.height + kTSAlertView_RowMargin;
+    }
+
+    // title
     if ( self.title != nil )
     {
       self.titleLabel.frame = CGRectMake( kTSAlertView_LeftMargin, y, titleLabelSize.width, titleLabelSize.height );
@@ -394,6 +412,10 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
   }
   
   return CGSizeMake( self.width, totalHeight + 10 );
+}
+
+- (CGSize) imageSize {
+  return self.imageView.image.size;
 }
 
 - (CGSize) titleLabelSize
@@ -700,6 +722,14 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 	return _messageLabel;
 }
 
+- (UIImageView*) imageView {
+  if ( !_imageView ) {
+    _imageView = [[UIImageView alloc] init];
+    _imageView.contentMode = UIViewContentModeCenter;
+  }
+  return _imageView;
+}
+
 - (UITextField*) inputTextField {
 	if ( _inputTextField == nil ) {
 		_inputTextField = [[UITextField alloc] init];
@@ -756,6 +786,7 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 @end
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#pragma mark -
 
 @implementation TSAlertViewAppearanceProxy
 

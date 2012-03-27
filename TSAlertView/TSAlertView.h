@@ -78,8 +78,9 @@ extern CGFloat kTSAlertView_ColumnMargin;
 + (TSAlertViewAppearanceProxy*) appearanceProxy;
 
 - (void) TSAlertView_commonInit;
-- (void) show;
+- (void) show;      /** Animated */
 - (void) dismissAnimated:(BOOL) animated;
+- (void) dismiss;   /** Animated */
 
 - (void) didCompleteDisplayAnimations;
 
@@ -106,6 +107,12 @@ extern CGFloat kTSAlertView_ColumnMargin;
 @property (nonatomic, assign) BOOL usesMessageTextView;
 
 @property (nonatomic, assign) TSAlertViewStyle style;
+
+@property (nonatomic, readonly) UIImageView *imageView;
+@property (nonatomic, readonly) NSMutableArray *buttons;
+@property (nonatomic, readonly) UILabel *titleLabel;
+@property (nonatomic, readonly) UILabel *messageLabel;
+@property (nonatomic, readonly) UITextView *messageTextView;
 
 @property (nonatomic, WEAK_OR_ASSIGN) id <TSAlertViewDelegate> delegate;
 @property (nonatomic, STRONG_OR_RETAIN, readonly) UITextField* inputTextField;
