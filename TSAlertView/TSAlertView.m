@@ -32,7 +32,6 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 @synthesize backgroundImage=_backgroundImage, width=_width, maxHeight=_maxHeight;
 
 + (void) setAppearanceProxy:(TSAlertViewAppearanceProxy *)proxy {
-  NSAssert([NSThread isMainThread], @"Not main thread");
   AtomicRetainedSetToFrom(__appearanceProxy, proxy);
 }
 
