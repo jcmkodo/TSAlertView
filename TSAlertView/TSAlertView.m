@@ -188,37 +188,39 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 {
 	if ( (self = [super init] ) ) // will call into initWithFrame, thus TSAlertView_commonInit is called
 	{
-		self.title = t;
-		self.message = m;
-		self.delegate = d;
-		
-		if ( nil != cancelButtonTitle )
-		{
-			[self addButtonWithTitle: cancelButtonTitle ];
-		}
-		
-		if ( nil != otherButtonTitles )
-		{
-			_firstOtherButtonIndex = [self.buttons count];
-			[self addButtonWithTitle: otherButtonTitles ];
-			
-			va_list args;
-			va_start(args, otherButtonTitles);
-			
-			id arg;
-			while ( nil != ( arg = va_arg( args, id ) ) ) 
-			{
-				if ( ![arg isKindOfClass: [NSString class] ] )
-					return nil;
-				
-				[self addButtonWithTitle: (NSString*)arg ];
-			}
-		}
-    
-    self.cancelButtonIndex = 0;
-	}
-	
-	return self;
+    if (!UNIT_TESTS_RUNNING) {
+      self.title = t;
+      self.message = m;
+      self.delegate = d;
+      
+      if ( nil != cancelButtonTitle )
+      {
+        [self addButtonWithTitle: cancelButtonTitle ];
+      }
+      
+      if ( nil != otherButtonTitles )
+      {
+        _firstOtherButtonIndex = [self.buttons count];
+        [self addButtonWithTitle: otherButtonTitles ];
+        
+        va_list args;
+        va_start(args, otherButtonTitles);
+        
+        id arg;
+        while ( nil != ( arg = va_arg( args, id ) ) ) 
+        {
+          if ( ![arg isKindOfClass: [NSString class] ] )
+            return nil;
+          
+          [self addButtonWithTitle: (NSString*)arg ];
+        }
+      }
+      
+      self.cancelButtonIndex = 0;
+    }
+  }
+  
+  return self;
 }
 
 - (void) onButtonPress: (id) sender
@@ -302,14 +304,14 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
   if ( layout )
   {
     CGFloat y = kTSAlertView_TopMargin;
-
+    
     // image
     if ( self.imageView.image ) {
       self.imageView.frame = CGRectMake(0, y, self.bounds.size.width, imageSize.height);
       [self addSubview:self.imageView];
       y += imageSize.height + kTSAlertView_RowMargin;
     }
-
+    
     // title
     if ( self.title != nil )
     {
@@ -496,7 +498,7 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 
 - (void)dealloc {
   [self cleanup];
-
+  
   [super dealloc];
 }
 
