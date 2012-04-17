@@ -499,7 +499,18 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 - (void)dealloc {
   [self cleanup];
   
+#if __has_feature(objc_arc) == 0
+  [_titleLabel release];
+  [_messageLabel release];
+  [_messageTextView release];
+  [_messageTextViewMaskImageView release];
+  [_inputTextField release];
+  [_buttons release];
+  [_imageView release];
+  [_backgroundImage release];
+  
   [super dealloc];
+#endif
 }
 
 - (void) TSAlertView_commonInit
