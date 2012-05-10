@@ -46,8 +46,13 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
   return ret;
 }
 
+- (void) awakeFromNib {
+  [super awakeFromNib];
+  [self TSAlertView_commonInit];
+}
+
 - (void) pulse {
-  // pulse animation thanks to:  http://delackner.com/blog/2009/12/mimicking-uialertviews-animated-transition/
+  // pulse animation thanks to: http://delackner.com/blog/2009/12/mimicking-uialertviews-animated-transition/
   
   [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
     self.alpha = 1;
