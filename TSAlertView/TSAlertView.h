@@ -69,13 +69,12 @@ extern CGFloat kTSAlertView_ColumnMargin;
 @interface TSAlertViewBase : UIView { 
   UIImage *_backgroundImage;
 }
-@property (nonatomic, assign) CGFloat width;
-@property (nonatomic, assign) CGFloat maxHeight;
 @property (nonatomic, STRONG_OR_RETAIN) UIImage* backgroundImage;
 @property (nonatomic, readonly, getter=isVisible) BOOL visible;
 
 + (void) setAppearanceProxy:(TSAlertViewAppearanceProxy*) proxy;
 + (TSAlertViewAppearanceProxy*) appearanceProxy;
++ (id)   show;
 
 - (void) TSAlertView_commonInit;
 - (void) show;      /** Animated */
@@ -107,6 +106,9 @@ extern CGFloat kTSAlertView_ColumnMargin;
 @property (nonatomic, assign) BOOL usesMessageTextView;
 
 @property (nonatomic, assign) TSAlertViewStyle style;
+
+@property (nonatomic, assign) CGFloat width;
+@property (nonatomic, assign) CGFloat maxHeight;
 
 @property (nonatomic, readonly) UIImageView *imageView;
 @property (nonatomic, readonly) NSMutableArray *buttons;
