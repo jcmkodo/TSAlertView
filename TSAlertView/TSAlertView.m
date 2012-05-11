@@ -135,7 +135,7 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 
 - (void) TSAlertView_commonInit
 {
-	self.backgroundColor = [UIColor whiteColor];
+	self.backgroundColor = [UIColor clearColor];
 	self.autoresizingMask = (
                            UIViewAutoresizingFlexibleLeftMargin | 
                            UIViewAutoresizingFlexibleRightMargin | 
@@ -253,6 +253,11 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 	if ( nil == self.superview )
 		return _maxHeight;
 	return MIN( _maxHeight, self.superview.bounds.size.height - 20 );
+}
+
+- (CGSize) sizeThatFits: (CGSize) unused {
+	CGSize s = [self recalcSizeAndLayout: NO];
+	return s;
 }
 
 #pragma mark -
