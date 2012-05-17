@@ -125,7 +125,7 @@ extern CGFloat kTSAlertView_ColumnMargin;
             message:(NSString *)message 
            delegate:(id)delegate 
   cancelButtonTitle:(NSString *)cancelButtonTitle 
-  otherButtonTitles:(NSString *)otherButtonTitles, ...;
+  otherButtonTitles:(NSString *)otherButtonTitles, ... NS_REQUIRES_NIL_TERMINATION;
 
 - (NSInteger) addButtonWithTitle:(NSString *)title;
 - (NSString *) buttonTitleAtIndex:(NSInteger)buttonIndex;
