@@ -57,16 +57,16 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
   [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
     self.alpha = 1;
     self.transform = CGAffineTransformScale(self.transform, kPulseAnimScale1, kPulseAnimScale1);
-  } completion:^(BOOL finished) {
-    if (finished) {
+  } completion:^(BOOL finished1) {
+    if (finished1) {
       [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
         self.transform = CGAffineTransformScale(self.transform, kPulseAnimScale2, kPulseAnimScale2);
-      } completion:^(BOOL finished) {
-        if (finished) {
+      } completion:^(BOOL finished2) {
+        if (finished2) {
           [UIView animateWithDuration:kAlertBoxAnimDuration delay:0 options:0 animations:^{
             self.transform = CGAffineTransformScale(self.transform, kPulseAnimScale3, kPulseAnimScale3);
-          } completion:^(BOOL finished) {
-            if (finished) {
+          } completion:^(BOOL finished3) {
+            if (finished3) {
               [self didCompleteDisplayAnimations];
             }
           }];
