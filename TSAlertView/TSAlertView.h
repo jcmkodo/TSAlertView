@@ -30,7 +30,7 @@ typedef enum
 	TSAlertViewStyleNormal,
 	TSAlertViewStyleInput,
 	TSAlertViewStyleActivityView,
-	
+	TSAlertViewStyleCustomView,
 } TSAlertViewStyle;
 
 extern const NSTimeInterval kAlertBoxAnimDuration;
@@ -119,6 +119,7 @@ extern CGFloat kTSAlertView_ColumnMargin;
 @property (nonatomic, WEAK_OR_ASSIGN) id <TSAlertViewDelegate> delegate;
 @property (nonatomic, STRONG_OR_RETAIN, readonly) UITextField* inputTextField;
 @property (nonatomic, STRONG_OR_RETAIN, readonly) UIActivityIndicatorView* activityIndicatorView;
+@property (nonatomic, retain, readwrite) UIView *customView;
 @property (nonatomic, STRONG_OR_RETAIN) id userInfo;
 
 - (id)initWithTitle:(NSString *)title 

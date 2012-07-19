@@ -164,6 +164,7 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
 @synthesize cancelButtonIndex=_cancelButtonIndex, buttonLayout=_buttonLayout;
 @synthesize firstOtherButtonIndex=_firstOtherButtonIndex, usesMessageTextView=_usesMessageTextView;
 @synthesize style=_style, activityIndicatorView=_activityIndicatorView, userInfo=_userInfo;
+@synthesize customView = _customView;
 
 - (id) initWithTitle: (NSString *) t 
              message: (NSString *) m 
@@ -278,6 +279,7 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
   UIView *accessory = nil;
   CGSize accessorySize = CGSizeZero;
   CGFloat accessoryHeight = 0;
+  CGFloat accessoryWidth = 0;
   switch (self.style) {
     case TSAlertViewStyleInput:
       accessory = self.inputTextField;
@@ -289,11 +291,26 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
       accessorySize = self.activityIndicatorView.frame.size;
       accessoryHeight = accessorySize.height + kTSAlertView_RowMargin / 2;
       break;
+    case TSAlertViewStyleCustomView:
+      NSAssert(nil != self.customView, @"The custom alert style must have a custom view associated with it!");
+      accessory = self.customView;
+      accessorySize = self.customView.frame.size;
+      accessoryHeight = accessorySize.height + kTSAlertView_RowMargin / 2;
+      accessoryWidth = self.customView.frame.size.width;
     default:
       break;
   }
   
   CGFloat totalHeight = 0;
+  CGFloat totalWidth = 0;
+  if(accessoryWidth > self.width)
+  {
+    totalWidth = accessoryWidth;
+  }
+  else
+  {
+    totalWidth = self.width;
+  }
   
   // easier to debug as a big ugly list...
   totalHeight += kTSAlertView_TopMargin;
@@ -383,7 +400,7 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
     // centre accessories
     if (accessory) {
       CGRect frame = accessory.frame;
-      frame.origin = CGPointMake(self.width / 2 - accessorySize.width / 2, 
+      frame.origin = CGPointMake(totalWidth / 2 - accessorySize.width / 2, 
                                  ( buttonTop - y ) / 2 - accessoryHeight / 2 + y );
       frame.size = accessorySize;
       accessory.frame = frame;
@@ -431,7 +448,7 @@ CGFloat kTSAlertView_ColumnMargin = 10.0;
     
   }
   
-  return CGSizeMake( self.width, totalHeight + 10 );
+  return CGSizeMake(totalWidth + 10, totalHeight + 10);
 }
 
 - (CGSize) imageSize {
